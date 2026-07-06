@@ -1,0 +1,630 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel de Facturación</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #F7F8FA; color: #2D3748; }
+  .t10{font-size:10px;line-height:1.35}.t11{font-size:11px;line-height:1.4}.t12{font-size:12px;line-height:1.45}
+  .t13{font-size:13px;line-height:1.5}.t14{font-size:14px}.t16{font-size:16px}
+  .bold{font-weight:700}.semib{font-weight:600}
+  .row{display:flex;align-items:center}.wrap{flex-wrap:wrap}.gap1{gap:4px}.gap2{gap:8px}.gap3{gap:12px}
+  .flex1{flex:1}.grow{flex-grow:1}
+  .card{background:#fff;border:1px solid #E3E7EE;border-radius:12px;padding:16px}
+  .grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:760px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.mdcol{grid-template-columns:1fr!important}}
+  .mdg2{grid-template-columns:repeat(2,1fr)}@media(max-width:760px){.mdg2{grid-template-columns:1fr}}
+  table{border-collapse:collapse;width:100%}
+  th,td{padding:5px 8px}
+  .btn{border:none;border-radius:8px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .btn:disabled{opacity:.5;cursor:default}
+  select,input{font-family:inherit}
+  .ovx{overflow-x:auto}
+  .truncate{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spin{animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+  .tabbtn{border:none;background:transparent;cursor:pointer;padding:8px 12px;font-size:12px;font-weight:600;border-radius:8px 8px 0 0;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  input[type=checkbox]{width:15px;height:15px}
+</style>
+<div id="root" style="min-height:100vh"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* ===== Paleta ===== */
+const C = { navy:"#1B2A4A", orange:"#E8743B", lblue:"#5B7BB4", teal:"#4BACC6", green:"#3FA76A",
+  greenD:"#1B7A47", gold:"#C9A227", red:"#C0504D", amber:"#D98C2B", grey:"#8A94A6",
+  lgrey:"#EEF1F5", paper:"#F7F8FA", ink:"#2D3748", line:"#E3E7EE", white:"#fff" };
+const CHART = [C.navy,C.orange,C.lblue,C.teal,C.green,"#9BBB59","#7E6BA8",C.grey];
+
+/* ===== Iconos (SVG inline) ===== */
+const Ic = ({d, size=15, color="currentColor", style}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round" style={style}>{d}</svg>);
+const IUp = (p)=><Ic {...p} d={<><path d="M12 15V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></>}/>;
+const IDown=(p)=><Ic {...p} d={<><path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M4 18v1a2 2 0 002 2h12a2 2 0 002-2v-1"/></>}/>;
+const ICheck=(p)=><Ic {...p} d={<path d="M20 6L9 17l-5-5"/>}/>;
+const IX=(p)=><Ic {...p} d={<><path d="M18 6L6 18"/><path d="M6 6l12 12"/></>}/>;
+const IWarn=(p)=><Ic {...p} d={<><path d="M12 3l10 18H2z"/><path d="M12 9v5"/><path d="M12 18h.01"/></>}/>;
+const ITrash=(p)=><Ic {...p} d={<><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 15h10l1-15"/></>}/>;
+const ILock=(p)=><Ic {...p} d={<><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/></>}/>;
+const IDb=(p)=><Ic {...p} d={<><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></>}/>;
+const IDash=(p)=><Ic {...p} d={<><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></>}/>;
+const IWare=(p)=><Ic {...p} d={<><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18"/><rect x="8" y="13" width="8" height="8"/></>}/>;
+const ILayers=(p)=><Ic {...p} d={<><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></>}/>;
+const IRefresh=(p)=><Ic {...p} d={<><path d="M21 12a9 9 0 11-3-6.7L21 8"/><path d="M21 3v5h-5"/></>}/>;
+const IFilter=(p)=><Ic {...p} d={<path d="M3 4h18l-7 8v6l-4 2v-8z"/>}/>;
+const IPin=(p)=><Ic {...p} d={<><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></>}/>;
+const IBuild=(p)=><Ic {...p} d={<><rect x="4" y="3" width="16" height="18"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01M8 15h.01M12 15h.01M16 15h.01"/></>}/>;
+
+/* ===== Formato ===== */
+const clp=v=>(v<0?"-$":"$")+Math.round(Math.abs(v||0)).toLocaleString("es-CL");
+const mmv=v=>(Math.round((v||0)/1e5)/10).toLocaleString("es-CL");
+const numCL=v=>Math.round(v||0).toLocaleString("es-CL");
+const pc=v=>(Math.round((v||0)*10)/10).toLocaleString("es-CL")+"%";
+const MES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+
+/* ===== Mapeo negocio ===== */
+const MAP={
+ "ARRIENDO DE GALPONES HUECHURABA":{dir:"Condominio Bodegas Huechuraba",tipo:"Galpón / Bodega",fam:"Arriendo Galpones",com:"Huechuraba"},
+ "GASTOS COMUNES GALPONES HUECHURABA":{dir:"Condominio Bodegas Huechuraba",tipo:"Gastos comunes",fam:"Gastos Comunes",com:"Huechuraba"},
+ "FUNDO EL CARMEN DE HUECHURABA":{dir:"Fundo El Carmen (Lote 9), Huechuraba",tipo:"Terreno / Predio",fam:"Arriendo Fundos y Predios",com:"Huechuraba"},
+ "FEE CANCHAS DE PADEL PERIODO":{dir:"El Carmen de Huechuraba",tipo:"Canchas de pádel",fam:"Servicios Operacionales",com:"Huechuraba"},
+ "POR ARRIENDO GALPONES":{dir:"Camino San Pedro 9650, Pudahuel",tipo:"Galpón / Bodega",fam:"Arriendo Galpones",com:"Pudahuel"},
+ "POR ARRIENDO OFICINA, LAB. Y CASINO":{dir:"Camino San Pedro 9650, Pudahuel",tipo:"Oficina / Lab / Casino",fam:"Arriendo Oficinas e Instalaciones",com:"Pudahuel"},
+ "POR LAS CONSTRUCCIONES LIVIANAS":{dir:"Camino San Pedro 9650, Pudahuel",tipo:"Construcción liviana",fam:"Arriendo Oficinas e Instalaciones",com:"Pudahuel"},
+ "ARRIENDO CORRESPONDIENTE AL":{dir:"Camino San Pedro 9650, Pudahuel",tipo:"Oficina / Lab / Casino",fam:"Arriendo Fundos y Predios",com:"Pudahuel"},
+ "ARRIENDO TERRENO":{dir:"Camino San Pedro 9650, Pudahuel",tipo:"Terreno / Predio",fam:"Arriendo Terrenos",com:"Pudahuel"},
+ "ARRIENDO PORCION TERRENO":{dir:"Puerto Santiago 195, Pudahuel",tipo:"Terreno / Predio",fam:"Arriendo Terrenos",com:"Pudahuel"},
+ "ARRIENDO ANTILLANCA":{dir:"Antillanca 584, Pudahuel",tipo:"Posiciones de rack",fam:"Arriendo Fundos y Predios",com:"Pudahuel"},
+ "ARRDO ALGARROBAL":{dir:"Fundo Algarrobal, Colina",tipo:"Terreno / Predio",fam:"Arriendo Fundos y Predios",com:"Colina"},
+ "ARRIENDO TALCAHUANO":{dir:"Terreno Talcahuano, Concepción",tipo:"Terreno / Predio",fam:"Arriendo Fundos y Predios",com:"Talcahuano"},
+ "ARRIENDO LINARES":{dir:"Longitudinal Sur Km 298, Linares",tipo:"Galpón / Bodega",fam:"Arriendo Fundos y Predios",com:"Linares"},
+ "PINO INSIGNE":{dir:"Predio Los Bajos de Gualleco, Curepto",tipo:"Forestal (madera)",fam:"Productos Agropecuarios y Forestales",com:"Curepto"},
+ "CORDEROS":{dir:"Campos Santo Domingo",tipo:"Ganado (producto)",fam:"Productos Agropecuarios y Forestales",com:"Santo Domingo"},
+ "TERNEROS":{dir:"Campos Santo Domingo",tipo:"Ganado (producto)",fam:"Productos Agropecuarios y Forestales",com:"Santo Domingo"},
+ "ARRIENDO ESPACIO":{dir:"Estacionamientos",tipo:"Estacionamiento",fam:"Arriendo Terrenos",com:null},
+ "GASTO OPERACION BOMBA":{dir:"Servicios operacionales (bomba/agua)",tipo:"Servicio",fam:"Servicios Operacionales",com:null},
+ "Consumo de luz":{dir:"Servicios operacionales (electricidad)",tipo:"Servicio",fam:"Servicios Operacionales",com:null},
+ "TRATAMIENTO DE RILES":{dir:"Servicios operacionales (riles)",tipo:"Servicio",fam:"Servicios Operacionales",com:null},
+ "ARRDO GILDEMESITES SPA":{dir:"Publicidad vía pública",tipo:"Publicidad",fam:"Arriendo Fundos y Predios",com:"Sin asignar"},
+ "ARRDO. GILDEMEISTER":{dir:"Publicidad vía pública",tipo:"Publicidad",fam:"Arriendo Fundos y Predios",com:"Sin asignar"},
+ "(SIN CONCEPTO)":{dir:"Otros predios (Bucalemu/talaje)",tipo:"Terreno / Predio",fam:"Otros y Ajustes",com:"Sin asignar"},
+ "T45":{dir:"Ajustes",tipo:"Ajuste",fam:"Otros y Ajustes",com:"Sin asignar"},
+};
+const REGION={Huechuraba:"R. Metropolitana",Pudahuel:"R. Metropolitana",Colina:"R. Metropolitana",Talcahuano:"Biobío",Curepto:"Maule",Linares:"Maule","Santo Domingo":"Valparaíso","Sin asignar":"—"};
+const CONDO="Condominio Bodegas Huechuraba", GALPON_HUE="ARRIENDO DE GALPONES HUECHURABA";
+
+function conceptoDe(s){ if(s==null||s==="")return "(SIN CONCEPTO)"; const m=String(s).match(/^\s*\[([^\]]+)\]/); return m?m[1].trim():"(SIN CONCEPTO)"; }
+function parseNum(v){ if(v==null||v==="")return 0; if(typeof v==="number")return v; const s=String(v).replace(/\./g,"").replace(/,/g,".").replace(/[^0-9.\-]/g,""); const n=parseFloat(s); return isNaN(n)?0:n; }
+function normFecha(v){ if(v==null||v==="")return null; if(v instanceof Date&&!isNaN(v))return v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0")+"-"+String(v.getDate()).padStart(2,"0"); const d=new Date(v); if(!isNaN(d))return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); return null; }
+
+function enrich(rows){
+  const base=rows.map(r=>{ const concepto=conceptoDe(r.s); const m=MAP[concepto]||{dir:"Otros",tipo:"Otros",fam:"Otros y Ajustes",com:"Sin asignar"};
+    const f=r.f||null;
+    return {...r,concepto,direccion:m.dir,tipo:m.tipo,familia:m.fam,comuna:m.com,
+      exento:Math.abs((r.b||0)-(r.n||0))<1, anio:f?+f.slice(0,4):null, mes:f?+f.slice(5,7):null, ym:f?f.slice(0,7):null }; });
+  const dom={}; base.forEach(r=>{ if(r.comuna&&r.comuna!=="Sin asignar"){ (dom[r.c]=dom[r.c]||{})[r.comuna]=(dom[r.c][r.comuna]||0)+(r.n||0);} });
+  const domCom={}; Object.keys(dom).forEach(c=>{ domCom[c]=Object.entries(dom[c]).sort((a,b)=>b[1]-a[1])[0][0]; });
+  base.forEach(r=>{ if(r.comuna==null)r.comuna=domCom[r.c]||"Sin asignar"; r.region=REGION[r.comuna]||"—"; });
+  return base;
+}
+
+/* ===== Almacenamiento por capas: window.storage (compartido) -> localStorage -> memoria ===== */
+const Store={
+  mem:{}, mode:"memoria",
+  async init(){ if(window.storage&&window.storage.set){this.mode="nube (artifact)";} else { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); this.mode="navegador"; }catch(e){ this.mode="memoria"; } } },
+  async get(k){
+    if(window.storage&&window.storage.get){ try{ const r=await window.storage.get(k,true); return r?r.value:null; }catch(e){ return null; } }
+    if(this.mode==="navegador"){ try{ return localStorage.getItem(k); }catch(e){} }
+    return this.mem[k]??null;
+  },
+  async set(k,v){
+    if(window.storage&&window.storage.set){ try{ await window.storage.set(k,v,true); return true; }catch(e){} }
+    if(this.mode==="navegador"){ try{ localStorage.setItem(k,v); return true; }catch(e){} }
+    this.mem[k]=v; return true;
+  }
+};
+const packRows=rows=>{ const dict=[...new Set(rows.map(r=>r.s))]; const di=new Map(dict.map((s,i)=>[s,i]));
+  return JSON.stringify({dict,rows:rows.map(r=>[r.id,di.get(r.s),r.n,r.b,r.f,r.c])}); };
+const unpackRows=str=>{ try{ const {dict,rows}=JSON.parse(str); return rows.map(p=>({id:p[0],s:dict[p[1]],n:p[2],b:p[3],f:p[4],c:p[5]})); }catch(e){ return []; } };
+
+/* Semilla: si una versión publicada trae datos/código embebidos y aún no hay nada guardado, los carga una vez */
+async function seedIfEmpty(){
+  try{
+    if(!(window.__SEED__)) return;
+    const cur=await Store.get("bd_rows");
+    if(!cur && window.__SEED__.packed){ await Store.set("bd_rows", JSON.stringify(window.__SEED__.packed)); }
+    const g=await Store.get("bd_gate");
+    if(!g && window.__SEED__.gate){ await Store.set("bd_gate", window.__SEED__.gate); }
+    const s=await Store.get("bd_settings");
+    if(!s && window.__SEED__.cap){ await Store.set("bd_settings", JSON.stringify({cap:window.__SEED__.cap})); }
+  }catch(e){}
+}
+
+/* ===== Dedup ===== */
+const bizKey=r=>`${(r.s||"").trim()}||${r.f||""}||${(r.c||"").trim()}`;
+function planImport(incoming,stored){
+  const avail={}; stored.forEach(r=>{ (avail[bizKey(r)]=avail[bizKey(r)]||[]).push({...r}); });
+  const incByKey={}; incoming.forEach(r=>{ (incByKey[bizKey(r)]=incByKey[bizKey(r)]||[]).push(r); });
+  const nuevas=[],modificadas=[]; let identicas=0;
+  Object.keys(incByKey).forEach(k=>{ const inc=incByKey[k]; const st=(avail[k]||[]).slice(); const rem=[];
+    inc.forEach(ir=>{ const idx=st.findIndex(sr=>Math.round(sr.n)===Math.round(ir.n)&&Math.round(sr.b)===Math.round(ir.b));
+      if(idx>=0){identicas++;st.splice(idx,1);} else rem.push(ir); });
+    let i=0; while(i<rem.length&&st.length>0){ const sr=st.shift(); modificadas.push({id:sr.id,s:sr.s,f:sr.f,c:sr.c,oldN:sr.n,oldB:sr.b,newN:rem[i].n,newB:rem[i].b}); i++; }
+    for(;i<rem.length;i++) nuevas.push(rem[i]);
+  });
+  return {nuevas,modificadas,identicas};
+}
+function sumBy(rows,fn){ const o={}; rows.forEach(r=>{ const k=fn(r); if(k==null)return; (o[k]=o[k]||{neto:0,bruto:0,n:0}); o[k].neto+=r.n||0;o[k].bruto+=r.b||0;o[k].n++; }); return o; }
+
+/* ===== Componentes UI ===== */
+function Chip({label,value,sub,color=C.navy}){ return (
+  <div className="card" style={{padding:12,borderLeft:`4px solid ${color}`,background:C.lgrey,border:"none"}}>
+    <div className="t10 semib" style={{color:C.grey,textTransform:"uppercase",letterSpacing:.3}}>{label}</div>
+    <div className="bold" style={{fontSize:18,color:C.navy,marginTop:2}}>{value}</div>
+    {sub&&<div className="t10" style={{color:C.grey,marginTop:2}}>{sub}</div>}
+  </div>); }
+function STitle({children,icon:I}){ return (
+  <div className="row gap2" style={{marginBottom:12}}>
+    {I&&<I color={C.orange} size={15}/>}
+    <div className="bold t13" style={{color:C.ink}}>{children}</div>
+    <div className="flex1" style={{height:1,background:C.line}}/>
+  </div>); }
+function BarList({data,highlight=0,altColor=C.navy}){
+  const max=Math.max(1,...data.map(d=>d.value));
+  return <div style={{display:"flex",flexDirection:"column",gap:5}}>
+    {data.map((d,i)=>(
+      <div key={i} className="row gap2 t11">
+        <div className="truncate" style={{width:130,color:C.ink}} title={d.name}>{d.name}</div>
+        <div style={{flex:1,background:"#F1F3F6",borderRadius:4,height:15}}>
+          <div style={{width:`${Math.max(1,d.value/max*100)}%`,background:i===highlight?C.orange:altColor,height:15,borderRadius:4}}/>
+        </div>
+        <div style={{width:60,textAlign:"right",color:C.grey}}>{mmv(d.value)}</div>
+      </div>))}
+  </div>;
+}
+function LineSVG({data,domain,fmtY,color=C.navy,avg}){
+  const W=640,H=200,pl=42,pr=12,pt=12,pb=42;
+  const n=data.length; if(n===0)return <div className="t11" style={{color:C.grey,padding:20}}>Sin datos.</div>;
+  const ys=data.map(d=>d.v);
+  const yMin=domain?domain[0]:Math.min(...ys)*0.95, yMax=domain?domain[1]:Math.max(...ys)*1.05||1;
+  const X=i=> pl+(n<=1?0:(i*(W-pl-pr)/(n-1)));
+  const Y=v=> pt+(1-(v-yMin)/(yMax-yMin||1))*(H-pt-pb);
+  const path=data.map((d,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(d.v).toFixed(1)}`).join(" ");
+  const ticks=4; const tv=Array.from({length:ticks+1},(_,i)=>yMin+i*(yMax-yMin)/ticks);
+  const step=Math.max(1,Math.ceil(n/14));
+  return <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{maxHeight:230}}>
+    {tv.map((v,i)=>(<g key={i}><line x1={pl} x2={W-pr} y1={Y(v)} y2={Y(v)} stroke={C.line}/>
+      <text x={pl-4} y={Y(v)+3} textAnchor="end" fontSize="9" fill={C.grey}>{fmtY?fmtY(v):mmv(v)}</text></g>))}
+    {avg!=null&&<line x1={pl} x2={W-pr} y1={Y(avg)} y2={Y(avg)} stroke={C.orange} strokeDasharray="4 3"/>}
+    <path d={path} fill="none" stroke={color} strokeWidth="2"/>
+    {data.map((d,i)=><circle key={i} cx={X(i)} cy={Y(d.v)} r="2.4" fill={C.orange}/>)}
+    {data.map((d,i)=> i%step===0 ? <text key={i} x={X(i)} y={H-pb+14} textAnchor="end" fontSize="8" fill={C.grey}
+      transform={`rotate(-90 ${X(i)} ${H-pb+14})`}>{d.name}</text> : null)}
+  </svg>;
+}
+function Select({label,value,onChange,options}){ return (
+  <label className="row gap1 t12" style={{color:C.grey}}>
+    <span className="semib">{label}:</span>
+    <select value={value} onChange={e=>onChange(e.target.value)} style={{borderRadius:6,padding:"4px 6px",border:`1px solid ${C.line}`,background:"#fff",color:C.ink,fontSize:12}}>
+      {options.map(([v,l])=><option key={v} value={v}>{l}</option>)}
+    </select>
+  </label>); }
+
+/* ===================== TAB Resumen ===================== */
+function ResumenTab({rows}){
+  const anios=useMemo(()=>[...new Set(rows.filter(r=>r.anio).map(r=>r.anio))].sort(),[rows]);
+  const comunas=useMemo(()=>[...new Set(rows.map(r=>r.comuna))].sort(),[rows]);
+  const tipos=useMemo(()=>[...new Set(rows.map(r=>r.tipo))].sort(),[rows]);
+  const [fA,setFA]=useState("todos"),[fC,setFC]=useState("todas"),[fT,setFT]=useState("todos"),[vista,setVista]=useState("mensual");
+  const f=useMemo(()=>rows.filter(r=>(fA==="todos"||r.anio===+fA)&&(fC==="todas"||r.comuna===fC)&&(fT==="todos"||r.tipo===fT)),[rows,fA,fC,fT]);
+  const neto=f.reduce((a,r)=>a+(r.n||0),0), bruto=f.reduce((a,r)=>a+(r.b||0),0);
+  const byC=useMemo(()=>Object.entries(sumBy(f,r=>r.comuna)).map(([k,v])=>({name:k,value:v.neto})).sort((a,b)=>b.value-a.value),[f]);
+  const byT=useMemo(()=>Object.entries(sumBy(f,r=>r.tipo)).map(([k,v])=>({name:k,value:v.neto})).sort((a,b)=>b.value-a.value),[f]);
+  const serie=useMemo(()=>{ const d=f.filter(r=>r.ym);
+    if(vista==="anual"){ const o=sumBy(d,r=>r.anio); return Object.keys(o).sort().map(k=>({name:k,v:o[k].neto})); }
+    const o=sumBy(d,r=>r.ym); return Object.keys(o).sort().slice(-24).map(k=>({name:k,v:o[k].neto})); },[f,vista]);
+  const pivote=useMemo(()=>{ const t={}; f.forEach(r=>{ (t[r.region]=t[r.region]||{neto:0,coms:{}}); t[r.region].neto+=r.n||0;
+    const cc=t[r.region].coms; (cc[r.comuna]=cc[r.comuna]||{neto:0,dirs:{}}); cc[r.comuna].neto+=r.n||0;
+    const dd=cc[r.comuna].dirs; (dd[r.direccion]=dd[r.direccion]||{neto:0,tipos:{}}); dd[r.direccion].neto+=r.n||0;
+    dd[r.direccion].tipos[r.tipo]=(dd[r.direccion].tipos[r.tipo]||0)+(r.n||0); }); return t; },[f]);
+  return (
+   <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="card">
+      <div className="row wrap gap2">
+        <IFilter color={C.grey}/>
+        <Select label="Año" value={fA} onChange={setFA} options={[["todos","Todos"],...anios.map(a=>[String(a),String(a)])]}/>
+        <Select label="Comuna" value={fC} onChange={setFC} options={[["todas","Todas"],...comunas.map(c=>[c,c])]}/>
+        <Select label="Tipo" value={fT} onChange={setFT} options={[["todos","Todos"],...tipos.map(t=>[t,t])]}/>
+        <div className="flex1"/>
+        <div className="row" style={{border:`1px solid ${C.line}`,borderRadius:8,overflow:"hidden"}}>
+          {["mensual","anual"].map(v=><button key={v} onClick={()=>setVista(v)} className="btn" style={{borderRadius:0,padding:"6px 12px",fontSize:12,textTransform:"capitalize",background:vista===v?C.navy:"#fff",color:vista===v?"#fff":C.grey}}>{v}</button>)}
+        </div>
+      </div>
+    </div>
+    <div className="grid g4">
+      <Chip label="Neto" value={clp(neto)} sub={numCL(f.length)+" documentos"}/>
+      <Chip label="Bruto (con IVA)" value={clp(bruto)} sub={"IVA "+clp(bruto-neto)} color={C.orange}/>
+      <Chip label="Clientes" value={numCL(new Set(f.map(r=>r.c)).size)} color={C.lblue}/>
+      <Chip label="Comunas" value={numCL(byC.length)} color={C.green}/>
+    </div>
+    <div className="grid mdg2">
+      <div className="card"><STitle icon={IPin}>Neto por comuna</STitle><BarList data={byC}/><div className="t10" style={{color:C.grey,marginTop:6}}>Valores en millones de CLP</div></div>
+      <div className="card"><STitle icon={IBuild}>Neto por tipo de espacio</STitle><BarList data={byT} altColor={C.lblue}/><div className="t10" style={{color:C.grey,marginTop:6}}>Valores en millones de CLP</div></div>
+    </div>
+    <div className="card">
+      <STitle icon={IDash}>Evolución {vista==="anual"?"anual":"mensual (últimos 24 meses)"}</STitle>
+      <LineSVG data={serie}/>
+      <div className="t10" style={{color:C.grey}}>Millones de CLP. Solo documentos con fecha de factura.</div>
+    </div>
+    <div className="card">
+      <STitle icon={IPin}>Detalle por región · comuna · propiedad · tipo</STitle>
+      <div className="ovx"><table className="t12">
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Nivel</th><th style={{textAlign:"right"}}>Neto</th><th style={{textAlign:"right"}}>%</th></tr></thead>
+        <tbody>
+          {Object.entries(pivote).sort((a,b)=>b[1].neto-a[1].neto).map(([reg,rv])=>(
+            <React.Fragment key={reg}>
+              <tr style={{background:"#D9E0EC"}}><td className="bold" style={{color:C.navy}}>{reg}</td><td className="bold" style={{textAlign:"right",color:C.navy}}>{clp(rv.neto)}</td><td className="bold" style={{textAlign:"right",color:C.navy}}>{pc(rv.neto/(neto||1)*100)}</td></tr>
+              {Object.entries(rv.coms).sort((a,b)=>b[1].neto-a[1].neto).map(([com,cv])=>(
+                <React.Fragment key={com}>
+                  <tr style={{background:C.lgrey}}><td className="semib" style={{paddingLeft:18}}>{com}</td><td className="semib" style={{textAlign:"right"}}>{clp(cv.neto)}</td><td style={{textAlign:"right",color:C.grey}}>{pc(cv.neto/(neto||1)*100)}</td></tr>
+                  {Object.entries(cv.dirs).sort((a,b)=>b[1].neto-a[1].neto).map(([dir,dv])=>(
+                    <tr key={dir} style={{borderBottom:`1px solid ${C.line}`}}>
+                      <td style={{paddingLeft:32}}>{dir} <span className="t10" style={{color:C.grey}}>· {Object.keys(dv.tipos).join(", ")}</span></td>
+                      <td style={{textAlign:"right"}}>{clp(dv.neto)}</td><td style={{textAlign:"right",color:C.grey}}>{pc(dv.neto/(neto||1)*100)}</td>
+                    </tr>))}
+                </React.Fragment>))}
+            </React.Fragment>))}
+        </tbody>
+      </table></div>
+    </div>
+   </div>);
+}
+
+/* ===================== TAB Ocupación ===================== */
+function OcupTab({rows,cap,setCap}){
+  const galp=useMemo(()=>rows.filter(r=>r.concepto===GALPON_HUE&&r.ym),[rows]);
+  const D=useMemo(()=>{ const cnt={},val={};
+    galp.forEach(r=>{ (cnt[r.anio]=cnt[r.anio]||{}); (val[r.anio]=val[r.anio]||{});
+      cnt[r.anio][r.mes]=(cnt[r.anio][r.mes]||0)+1; val[r.anio][r.mes]=(val[r.anio][r.mes]||0)+(r.n||0); });
+    const anios=Object.keys(cnt).map(Number).sort();
+    let mx={occ:-1},all=[],sug=0;
+    anios.forEach(y=>{for(let m=1;m<=12;m++){const c=(cnt[y]&&cnt[y][m])||0;if(c>0){sug=Math.max(sug,c);const occ=c/cap*100;all.push({y,m,occ,c});if(occ>mx.occ)mx={y,m,occ,c};}}});
+    const prom=all.length?all.reduce((a,x)=>a+x.occ,0)/all.length:0; const last=all[all.length-1]||null;
+    return {cnt,val,anios,mx:mx.occ>=0?mx:null,prom,last,sug}; },[galp,cap]);
+  const line=useMemo(()=>{ const a=[]; D.anios.forEach(y=>{for(let m=1;m<=12;m++){const c=(D.cnt[y]&&D.cnt[y][m])||0;if(c>0)a.push({name:`${y}-${String(m).padStart(2,"0")}`,v:Math.round(c/cap*1000)/10});}}); return a; },[D,cap]);
+  const anual=useMemo(()=>D.anios.map(y=>{ const vs=[]; for(let m=1;m<=12;m++){const c=(D.cnt[y]&&D.cnt[y][m])||0;if(c>0)vs.push({m,occ:c/cap*100,c});}
+    const pk=vs.reduce((a,x)=>x.occ>a.occ?x:a,{occ:-1}); const mn=vs.reduce((a,x)=>x.occ<a.occ?x:a,{occ:1e9});
+    const prom=vs.length?vs.reduce((a,x)=>a+x.occ,0)/vs.length:0; const val=Object.values(D.val[y]||{}).reduce((a,b)=>a+b,0);
+    return {y,meses:vs.length,prom,pk,mn,val}; }),[D,cap]);
+  const occColor=o=>o==null?"#F1F3F6":o>=98?C.greenD:o>=93?"#3FA76A":o>=88?"#86C99B":o>=83?"#F2C879":"#E59A8A";
+  return (
+   <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="card">
+      <div className="row wrap gap3" style={{justifyContent:"space-between"}}>
+        <div><STitle icon={IWare}>Ocupación del condominio de bodegas de Huechuraba</STitle>
+          <div className="t11" style={{color:C.grey,marginTop:-6}}>Proxy: 1 línea de arriendo de galpón = 1 bodega-mes. Ajusta la capacidad al tener el maestro real.</div></div>
+        <label className="row gap2 t12" style={{color:C.ink}}>
+          <span className="semib">Capacidad (bodegas):</span>
+          <input type="number" min="1" value={cap} onChange={e=>setCap(Math.max(1,+e.target.value||1))} style={{width:72,borderRadius:6,padding:"4px 6px",border:`1px solid ${C.line}`,color:C.navy,fontWeight:700,textAlign:"center",fontSize:13}}/>
+          {D.sug>0&&D.sug!==cap&&<button className="btn t11" onClick={()=>setCap(D.sug)} style={{background:C.lgrey,color:C.orange,padding:"4px 8px"}}>usar máx. observado ({D.sug})</button>}
+        </label>
+      </div>
+    </div>
+    <div className="grid g4">
+      <Chip label="Capacidad" value={cap+" bod."} sub="editable"/>
+      <Chip label="Máximo histórico" value={D.mx?pc(D.mx.occ):"—"} sub={D.mx?`${MES[D.mx.m-1]}-${D.mx.y} · ${D.mx.c} bod`:""} color={C.gold}/>
+      <Chip label="Promedio" value={pc(D.prom)} sub={line.length+" meses"} color={C.orange}/>
+      <Chip label="Actual" value={D.last?pc(D.last.occ):"—"} sub={D.last?`${D.last.c} de ${cap} bod`:""} color={C.lblue}/>
+    </div>
+    <div className="card">
+      <STitle>Ocupación mensual por año (%)</STitle>
+      <div className="ovx"><table className="t11" style={{minWidth:620}}>
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Año</th>{MES.map(m=><th key={m}>{m}</th>)}</tr></thead>
+        <tbody>{D.anios.map(y=>(
+          <tr key={y}><td className="bold" style={{background:C.lgrey,textAlign:"center"}}>{y}</td>
+            {Array.from({length:12},(_,i)=>i+1).map(m=>{ const c=(D.cnt[y]&&D.cnt[y][m])||0; const occ=c>0?c/cap*100:null;
+              const isMax=D.mx&&D.mx.y===y&&D.mx.m===m;
+              return <td key={m} className="semib" style={{textAlign:"center",background:occColor(occ),color:occ==null?C.grey:(occ>=93||occ<83?"#fff":C.ink),border:isMax?`2px solid ${C.gold}`:"1px solid #fff",padding:"6px 2px"}}>{occ==null?"·":pc(occ)}</td>; })}
+          </tr>))}</tbody>
+      </table></div>
+      <div className="row wrap gap2 t10" style={{color:C.grey,marginTop:8}}>
+        {[["<83%","#E59A8A"],["83-88%","#F2C879"],["88-93%","#86C99B"],["93-98%","#3FA76A"],["≥98%",C.greenD]].map(([t,col])=>(
+          <span key={t} className="row gap1"><span style={{width:12,height:12,background:col,borderRadius:2,display:"inline-block"}}/>{t}</span>))}
+        <span className="row gap1"><span style={{width:12,height:12,border:`2px solid ${C.gold}`,borderRadius:2,display:"inline-block"}}/>Máximo histórico</span>
+        <span>· Si un mes supera 100%, sube la capacidad.</span>
+      </div>
+    </div>
+    <div className="card"><STitle>Ocupación mensual (%)</STitle><LineSVG data={line} domain={[60,110]} fmtY={v=>Math.round(v)+"%"} avg={D.prom}/></div>
+    <div className="card">
+      <STitle>Ocupación por año y valorización del arriendo de galpones</STitle>
+      <div className="ovx"><table className="t12">
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Año</th><th style={{textAlign:"right"}}>Meses</th><th style={{textAlign:"right"}}>Prom.</th><th style={{textAlign:"left"}}>Peak</th><th style={{textAlign:"left"}}>Mínimo</th><th style={{textAlign:"right"}}>Valorización</th></tr></thead>
+        <tbody>{anual.map((a,i)=>(
+          <tr key={a.y} style={{background:i%2?"#fff":C.lgrey}}>
+            <td className="semib">{a.y}</td><td style={{textAlign:"right"}}>{a.meses}</td><td style={{textAlign:"right"}}>{pc(a.prom)}</td>
+            <td style={{color:C.greenD}}>{a.pk.occ>=0?`${pc(a.pk.occ)} (${MES[a.pk.m-1]}, ${a.pk.c})`:"—"}</td>
+            <td style={{color:C.red}}>{a.mn.occ<1e9?`${pc(a.mn.occ)} (${MES[a.mn.m-1]}, ${a.mn.c})`:"—"}</td>
+            <td className="semib" style={{textAlign:"right"}}>{clp(a.val)}</td></tr>))}</tbody>
+      </table></div>
+    </div>
+    <div className="card">
+      <STitle>Valorización mensual del arriendo de galpones (MM CLP)</STitle>
+      <div className="ovx"><table className="t11" style={{minWidth:680}}>
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Año</th>{MES.map(m=><th key={m}>{m}</th>)}<th style={{textAlign:"right"}}>Total</th></tr></thead>
+        <tbody>{D.anios.map((y,i)=>{ let tot=0; return (
+          <tr key={y} style={{background:i%2?"#fff":C.lgrey}}><td className="bold" style={{textAlign:"center"}}>{y}</td>
+            {Array.from({length:12},(_,k)=>k+1).map(m=>{ const v=(D.val[y]&&D.val[y][m])||0; tot+=v;
+              return <td key={m} style={{textAlign:"center",color:v?C.ink:C.grey}}>{v?mmv(v):"·"}</td>; })}
+            <td className="bold" style={{textAlign:"right",color:C.navy}}>{clp(tot)}</td></tr>); })}</tbody>
+      </table></div>
+      <div className="t10" style={{color:C.grey,marginTop:4}}>Los gastos comunes de las bodegas se facturan sin fecha en el origen, por lo que no entran en la serie mensual.</div>
+    </div>
+   </div>);
+}
+
+/* ===================== TAB Resto ===================== */
+function RestoTab({rows}){
+  const resto=useMemo(()=>rows.filter(r=>r.direccion!==CONDO),[rows]);
+  const dated=useMemo(()=>resto.filter(r=>r.ym),[resto]);
+  const meses=useMemo(()=>[...new Set(dated.map(r=>r.ym))].sort().slice(-12),[dated]);
+  const dirs=useMemo(()=>{ const o={}; resto.forEach(r=>{ (o[r.direccion]=o[r.direccion]||{neto:0,byMes:{}}); o[r.direccion].neto+=r.n||0; if(r.ym)o[r.direccion].byMes[r.ym]=(o[r.direccion].byMes[r.ym]||0)+(r.n||0); });
+    return Object.entries(o).sort((a,b)=>b[1].neto-a[1].neto); },[resto]);
+  const totNeto=resto.reduce((a,r)=>a+(r.n||0),0);
+  const mesTot=useMemo(()=>meses.map(ym=>({name:ym.slice(2),ym,v:dated.filter(r=>r.ym===ym).reduce((a,r)=>a+(r.n||0),0)})),[meses,dated]);
+  const varMoM=mesTot.length>=2?(mesTot[mesTot.length-1].v-mesTot[mesTot.length-2].v)/(mesTot[mesTot.length-2].v||1)*100:0;
+  const part=dirs.slice(0,8).map(([k,v])=>({name:k.length>24?k.slice(0,22)+"…":k,value:v.neto}));
+  return (
+   <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="grid g4">
+      <Chip label="Neto (sin condominio)" value={clp(totNeto)} sub={numCL(resto.length)+" docs"}/>
+      <Chip label="Propiedades / ítems" value={numCL(dirs.length)} color={C.lblue}/>
+      <Chip label="Último mes" value={mesTot.length?clp(mesTot[mesTot.length-1].v):"—"} sub={mesTot.length?mesTot[mesTot.length-1].ym:""} color={C.orange}/>
+      <Chip label="Variación m/m" value={(varMoM>=0?"+":"")+pc(varMoM)} color={varMoM>=0?C.green:C.red}/>
+    </div>
+    <div className="grid mdg2">
+      <div className="card"><STitle icon={IDash}>Tendencia mensual (últimos 12)</STitle><LineSVG data={mesTot}/><div className="t10" style={{color:C.grey}}>Millones de CLP</div></div>
+      <div className="card"><STitle icon={IBuild}>Participación por propiedad</STitle><BarList data={part}/><div className="t10" style={{color:C.grey,marginTop:6}}>Millones de CLP</div></div>
+    </div>
+    <div className="card">
+      <STitle icon={IPin}>Comparativo mensual por propiedad (neto)</STitle>
+      <div className="ovx"><table className="t11" style={{minWidth:720}}>
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Propiedad / ítem</th>{meses.map(m=><th key={m} style={{textAlign:"right"}}>{m.slice(2)}</th>)}<th style={{textAlign:"right"}}>Total</th></tr></thead>
+        <tbody>{dirs.map(([dir,dv],i)=>(
+          <tr key={dir} style={{background:i%2?"#fff":C.lgrey}}>
+            <td className="semib">{dir}</td>
+            {meses.map(m=>{ const v=dv.byMes[m]||0; return <td key={m} style={{textAlign:"right",color:v?C.ink:C.grey}}>{v?mmv(v):"·"}</td>; })}
+            <td className="bold" style={{textAlign:"right",color:C.navy}}>{clp(dv.neto)}</td></tr>))}</tbody>
+      </table></div>
+      <div className="t10" style={{color:C.grey,marginTop:4}}>Valores mensuales en millones; total en pesos. Todo salvo el condominio de bodegas de Huechuraba.</div>
+    </div>
+   </div>);
+}
+
+/* ===================== TAB Importación ===================== */
+function ImportTab({raw,enriched,setRows,notify,mode}){
+  const fileRef=useRef(null);
+  const [plan,setPlan]=useState(null),[accept,setAccept]=useState({}),[busy,setBusy]=useState(false),[clr,setClr]=useState(false);
+  const fechas=enriched.filter(r=>r.f).map(r=>r.f).sort();
+  const rango=fechas.length?`${fechas[0]} a ${fechas[fechas.length-1]}`:"—";
+  const onFile=async e=>{ const file=e.target.files&&e.target.files[0]; if(!file)return; setBusy(true);
+    try{ const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:"array",cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]]; const arr=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+      let hi=0; for(let i=0;i<Math.min(arr.length,8);i++){ const j=arr[i].map(x=>String(x).toLowerCase()).join(" "); if(j.includes("neto")||j.includes("servicio")||j.includes("cliente")){hi=i;break;} }
+      const heads=arr[hi].map(x=>String(x).toLowerCase().trim());
+      const find=(...ks)=>heads.findIndex(h=>ks.some(k=>h.includes(k)));
+      const iS=find("servicio","glosa","detalle","concepto"),iN=find("neto"),iB=find("bruto","con iva"),iF=find("fecha"),iC=find("cliente","razon","razón");
+      if(iS<0||iN<0||iC<0){ notify("No se reconocen las columnas. Usa la plantilla tipo.","err"); setBusy(false); return; }
+      const inc=[];
+      for(let i=hi+1;i<arr.length;i++){ const r=arr[i]; if(!r||r.every(x=>x===""||x==null))continue;
+        const s=r[iS],c=r[iC]; if((s===""||s==null)&&(c===""||c==null))continue;
+        inc.push({s:s==null?"":String(s).trim(),n:parseNum(r[iN]),b:iB>=0?parseNum(r[iB]):parseNum(r[iN]),f:iF>=0?normFecha(r[iF]):null,c:c==null?"":String(c).trim()}); }
+      const p=planImport(inc,raw); const ac={}; p.modificadas.forEach(m=>ac[m.id]=true); setAccept(ac);
+      setPlan({...p,fileName:file.name,total:inc.length});
+    }catch(err){ notify("Error al leer el archivo: "+err.message,"err"); }
+    setBusy(false); if(fileRef.current)fileRef.current.value="";
+  };
+  const confirmar=async()=>{ if(!plan)return; let maxId=raw.reduce((a,r)=>Math.max(a,r.id||0),0);
+    const nuevas=plan.nuevas.map(x=>({id:++maxId,s:x.s,n:x.n,b:x.b,f:x.f,c:x.c}));
+    const modMap={}; plan.modificadas.forEach(m=>{ if(accept[m.id])modMap[m.id]={n:m.newN,b:m.newB}; });
+    const next=raw.map(r=>modMap[r.id]?{...r,...modMap[r.id]}:r).concat(nuevas);
+    await setRows(next); const nMod=Object.keys(modMap).length;
+    notify(`Importado: ${nuevas.length} nuevas, ${nMod} actualizadas, ${plan.identicas} idénticas ignoradas.`);
+    setPlan(null); setAccept({}); };
+  const plantilla=()=>{ const aoa=[["Servicio","Total Neto","Total Bruto","Fecha de factura","Cliente"],
+    ["[ARRIENDO DE GALPONES HUECHURABA] CORRESPONDIENTE A GALPON, PERIODO DEL ...",3200000,3808000,"2026-07-01","EJEMPLO CLIENTE SPA"],
+    ["[GASTOS COMUNES GALPONES HUECHURABA] PERIODO ...",180000,180000,"","EJEMPLO CLIENTE SPA"]];
+    const ws=XLSX.utils.aoa_to_sheet(aoa); ws["!cols"]=[{wch:60},{wch:14},{wch:14},{wch:16},{wch:28}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"facturacion"); XLSX.writeFile(wb,"plantilla_facturacion.xlsx"); };
+  const clearAll=async()=>{ await setRows([]); setClr(false); notify("Datos eliminados."); };
+  const respaldo=()=>{ if(raw.length===0){ notify("No hay datos para respaldar.","err"); return; }
+    const aoa=[["Servicio","Total Neto","Total Bruto","Fecha de factura","Cliente"]];
+    raw.forEach(r=>aoa.push([r.s,r.n,r.b,r.f||"",r.c]));
+    const ws=XLSX.utils.aoa_to_sheet(aoa); ws["!cols"]=[{wch:60},{wch:14},{wch:14},{wch:16},{wch:28}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"respaldo");
+    const hoy=new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb,`respaldo_facturacion_${hoy}.xlsx`); notify("Respaldo descargado."); };
+  return (
+   <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="grid mdg2">
+      <div className="card">
+        <STitle icon={IUp}>Importar planilla</STitle>
+        <div className="t12" style={{color:C.grey,marginBottom:12}}>Sube el Excel con las columnas <b>Servicio, Total Neto, Total Bruto, Fecha de factura, Cliente</b>. Puedes subir la planilla completa cada mes: lo idéntico se ignora y solo se agregan las líneas nuevas.</div>
+        <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={onFile} style={{display:"none"}}/>
+        <div className="row wrap gap2">
+          <button className="btn" disabled={busy} onClick={()=>fileRef.current&&fileRef.current.click()} style={{background:C.orange,color:"#fff",padding:"9px 16px",fontSize:13}}>{busy?<IRefresh className="spin"/>:<IUp/>} Elegir archivo</button>
+          <button className="btn" onClick={plantilla} style={{background:C.lgrey,color:C.navy,padding:"9px 16px",fontSize:13}}><IDown/> Descargar plantilla tipo</button>
+        </div>
+      </div>
+      <div className="card">
+        <STitle icon={IDb}>Datos guardados</STitle>
+        <div className="grid g2">
+          <Chip label="Documentos" value={numCL(raw.length)}/>
+          <Chip label="Fechas" value={numCL(fechas.length)} sub={rango} color={C.lblue}/>
+        </div>
+        <div className="t10" style={{color:C.grey,marginTop:8}}>Almacenamiento: {mode}</div>
+        <div style={{marginTop:8}}>
+          {!clr?<button className="btn t12" disabled={raw.length===0} onClick={()=>setClr(true)} style={{background:"#fff",color:C.red,border:`1px solid ${C.line}`,padding:"6px 12px"}}><ITrash size={14}/> Vaciar todos los datos</button>
+           :<div className="row gap2 t12"><span style={{color:C.red}}>¿Eliminar todo de forma permanente?</span>
+              <button className="btn" onClick={clearAll} style={{background:C.red,color:"#fff",padding:"4px 12px"}}>Sí, vaciar</button>
+              <button className="btn" onClick={()=>setClr(false)} style={{background:C.lgrey,color:C.ink,padding:"4px 12px"}}>Cancelar</button></div>}
+        </div>
+      </div>
+    </div>
+
+    {plan&&<div className="card">
+      <STitle icon={IRefresh}>Revisión de importación · {plan.fileName}</STitle>
+      <div className="grid g3" style={{marginBottom:16}}>
+        <Chip label="Nuevas" value={numCL(plan.nuevas.length)} sub="se agregarán" color={C.green}/>
+        <Chip label="Con cambios" value={numCL(plan.modificadas.length)} sub="requieren tu ok" color={C.amber}/>
+        <Chip label="Idénticas" value={numCL(plan.identicas)} sub="se ignoran" color={C.grey}/>
+      </div>
+      {plan.modificadas.length>0&&<div style={{marginBottom:16}}>
+        <div className="row" style={{justifyContent:"space-between",marginBottom:4}}>
+          <div className="bold t12" style={{color:C.ink}}>Líneas que cambiaron de monto</div>
+          <div className="row gap2 t11">
+            <button className="btn" onClick={()=>{const a={};plan.modificadas.forEach(m=>a[m.id]=true);setAccept(a);}} style={{background:C.lgrey,color:C.greenD,padding:"4px 8px"}}>Aceptar todas</button>
+            <button className="btn" onClick={()=>setAccept({})} style={{background:C.lgrey,color:C.red,padding:"4px 8px"}}>Rechazar todas</button>
+          </div>
+        </div>
+        <div className="ovx" style={{maxHeight:260,overflowY:"auto"}}><table className="t11">
+          <thead><tr style={{background:C.navy,color:"#fff"}}><th>Aceptar</th><th style={{textAlign:"left"}}>Cliente</th><th style={{textAlign:"left"}}>Servicio</th><th>Fecha</th><th style={{textAlign:"right"}}>Neto antes → después</th></tr></thead>
+          <tbody>{plan.modificadas.map((m,i)=>(
+            <tr key={m.id} style={{background:i%2?"#fff":C.lgrey}}>
+              <td style={{textAlign:"center"}}><input type="checkbox" checked={!!accept[m.id]} onChange={e=>setAccept(a=>({...a,[m.id]:e.target.checked}))}/></td>
+              <td>{m.c}</td><td className="truncate" style={{maxWidth:240}}>{conceptoDe(m.s)}</td><td style={{textAlign:"center"}}>{m.f||"—"}</td>
+              <td style={{textAlign:"right"}}><span style={{color:C.grey}}>{clp(m.oldN)}</span><span style={{color:C.orange}}> → {clp(m.newN)}</span>
+                <span className="t10" style={{marginLeft:4,color:m.newN>=m.oldN?C.green:C.red}}>({m.newN>=m.oldN?"+":""}{pc((m.newN-m.oldN)/(m.oldN||1)*100)})</span></td>
+            </tr>))}</tbody>
+        </table></div>
+      </div>}
+      {plan.nuevas.length>0&&<div style={{marginBottom:16}}>
+        <div className="bold t12" style={{color:C.ink,marginBottom:4}}>Nuevas ({plan.nuevas.length}) · vista previa</div>
+        <div className="ovx" style={{maxHeight:200,overflowY:"auto"}}><table className="t11">
+          <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Cliente</th><th style={{textAlign:"left"}}>Servicio</th><th>Fecha</th><th style={{textAlign:"right"}}>Neto</th></tr></thead>
+          <tbody>{plan.nuevas.slice(0,40).map((m,i)=>(
+            <tr key={i} style={{background:i%2?"#fff":C.lgrey}}><td>{m.c}</td><td className="truncate" style={{maxWidth:260}}>{conceptoDe(m.s)}</td><td style={{textAlign:"center"}}>{m.f||"—"}</td><td style={{textAlign:"right"}}>{clp(m.n)}</td></tr>))}</tbody>
+        </table>{plan.nuevas.length>40&&<div className="t10" style={{color:C.grey,marginTop:4}}>… y {plan.nuevas.length-40} más</div>}</div>
+      </div>}
+      <div className="row gap2">
+        <button className="btn" onClick={confirmar} style={{background:C.green,color:"#fff",padding:"9px 16px",fontSize:13}}><ICheck/> Confirmar importación</button>
+        <button className="btn" onClick={()=>{setPlan(null);setAccept({});}} style={{background:C.lgrey,color:C.ink,padding:"9px 16px",fontSize:13}}><IX/> Cancelar</button>
+      </div>
+    </div>}
+
+    <div className="card">
+      <STitle icon={IDown}>Respaldo de los datos</STitle>
+      <div className="t12" style={{color:C.grey,marginBottom:12}}>Descarga todo lo que llevas cargado a un Excel. Guárdalo en tu computador o en la nube: es tu copia de seguridad y también sirve para <b>restaurar</b> (súbelo con “Elegir archivo”) o para migrar a otro dispositivo o a la versión publicada.</div>
+      <div className="row wrap gap2">
+        <button className="btn" disabled={raw.length===0} onClick={respaldo} style={{background:C.navy,color:"#fff",padding:"9px 16px",fontSize:13}}><IDown/> Descargar respaldo</button>
+        <button className="btn" onClick={()=>fileRef.current&&fileRef.current.click()} style={{background:C.lgrey,color:C.navy,padding:"9px 16px",fontSize:13}}><IUp/> Restaurar (subir respaldo)</button>
+      </div>
+      <div className="t10" style={{color:C.grey,marginTop:8}}>Al restaurar, la deduplicación evita cargar dos veces lo que ya exista.</div>
+    </div>
+
+    <div className="card">
+      <STitle icon={ILayers}>Cómo se evitan los duplicados</STitle>
+      <ul className="t12" style={{margin:0,paddingLeft:18,color:C.ink,lineHeight:1.7}}>
+        <li>Cada línea se identifica por <b>Cliente + Servicio + Fecha</b>.</li>
+        <li>Si ya existe igual (mismo neto y bruto) <b>se ignora</b>.</li>
+        <li>Si existe pero con <b>otro monto</b>, se lista para que <b>aceptes o rechaces</b> antes de actualizar.</li>
+        <li>Lo que no existía se agrega como <b>nuevo</b>.</li>
+        <li className="t11" style={{color:C.grey}}>Sin folio único, dos arriendos idénticos del mismo cliente, servicio, fecha y monto se distinguen por orden. Si tu planilla puede traer un número de documento, se puede usar como llave exacta.</li>
+      </ul>
+    </div>
+   </div>);
+}
+
+/* ===================== App ===================== */
+function Panel(){
+  const [raw,setRawState]=useState([]);
+  const [cap,setCapState]=useState(45);
+  const [tab,setTab]=useState("resumen");
+  const [toast,setToast]=useState(null);
+  const rows=useMemo(()=>enrich(raw),[raw]);
+  const notify=(m,t="ok")=>{ setToast({t,m}); setTimeout(()=>setToast(null),3500); };
+  const setRows=useCallback(async next=>{ setRawState(next); await Store.set("bd_rows",packRows(next)); },[]);
+  const setCap=useCallback(async v=>{ setCapState(v); await Store.set("bd_settings",JSON.stringify({cap:v})); },[]);
+  useEffect(()=>{ (async()=>{ const r=await Store.get("bd_rows"); if(r) setRawState(unpackRows(r));
+    const s=await Store.get("bd_settings"); if(s){ try{ const o=JSON.parse(s); if(o.cap)setCapState(o.cap);}catch(e){} } })(); },[]);
+  const empty=rows.length===0;
+  const TABS=[["resumen","Resumen general",IDash],["ocup","Ocupación Huechuraba",IWare],["resto","El resto",ILayers],["import","Importación",IDb]];
+  return (
+   <div>
+    <div style={{background:C.navy,padding:"14px 20px 0"}}>
+      <div className="row wrap" style={{justifyContent:"space-between"}}>
+        <div>
+          <div className="bold" style={{color:"#fff",fontSize:16}}>Estado de Facturación · Panel</div>
+          <div className="t11" style={{color:"#B8C4DC"}}>{empty?"Sin datos cargados":`${numCL(rows.length)} documentos · ${new Set(rows.map(r=>r.c)).size} clientes`} · {Store.mode}</div>
+        </div>
+      </div>
+      <div className="row gap1" style={{marginTop:12,overflowX:"auto"}}>
+        {TABS.map(([id,label,I])=>{ const on=tab===id; return (
+          <button key={id} className="tabbtn" onClick={()=>setTab(id)} style={{background:on?C.paper:"transparent",color:on?C.navy:"#C3CDE0"}}><I size={14}/>{label}</button>); })}
+      </div>
+    </div>
+    <div style={{height:3,background:C.orange}}/>
+    {toast&&<div className="row gap2 t12" style={{margin:"12px 20px 0",padding:"8px 12px",borderRadius:8,background:toast.t==="err"?"#FDECEA":"#E9F6EF",color:toast.t==="err"?C.red:C.greenD}}>{toast.t==="err"?<IWarn size={14}/>:<ICheck size={14}/>}{toast.m}</div>}
+    <div style={{padding:20}}>
+      {empty&&tab!=="import"
+        ? <div style={{textAlign:"center",padding:"60px 0"}}>
+            <div style={{display:"inline-flex",width:56,height:56,borderRadius:28,background:C.lgrey,alignItems:"center",justifyContent:"center",marginBottom:12}}><IUp color={C.orange} size={22}/></div>
+            <div className="bold" style={{fontSize:16,color:C.ink}}>Aún no hay datos</div>
+            <div className="t13" style={{color:C.grey,margin:"4px 0 16px"}}>Importa tu planilla de facturación para empezar.</div>
+            <button className="btn" onClick={()=>setTab("import")} style={{background:C.orange,color:"#fff",padding:"9px 16px",fontSize:13}}>Ir a Importación</button>
+          </div>
+        : tab==="resumen"?<ResumenTab rows={rows}/>
+        : tab==="ocup"?<OcupTab rows={rows} cap={cap} setCap={setCap}/>
+        : tab==="resto"?<RestoTab rows={rows}/>
+        : <ImportTab raw={raw} enriched={rows} setRows={setRows} notify={notify} mode={Store.mode}/>}
+    </div>
+    <div className="t10" style={{padding:"0 20px 20px",color:C.grey}}>Comuna · dirección · tipo se derivan de la glosa. Gastos comunes → Huechuraba. Servicios (bomba/luz/riles) heredan la comuna del arriendo del cliente. Corderos y terneros → Santo Domingo.</div>
+   </div>);
+}
+
+/* ===================== Puerta de acceso (código) ===================== */
+function Gate(){
+  const [phase,setPhase]=useState("load"); // load | setup | enter | open
+  const [code,setCode]=useState(""),[code2,setCode2]=useState(""),[err,setErr]=useState("");
+  useEffect(()=>{ (async()=>{ await Store.init(); await seedIfEmpty(); const g=await Store.get("bd_gate"); setPhase(g?"enter":"setup"); })(); },[]);
+  const enc=s=>{ try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return s;} };
+  const doSetup=async()=>{ if(code.length<4){setErr("Usa al menos 4 caracteres.");return;} if(code!==code2){setErr("Los códigos no coinciden.");return;}
+    await Store.set("bd_gate",enc(code)); setPhase("open"); };
+  const doEnter=async()=>{ const g=await Store.get("bd_gate"); if(g===enc(code)){setPhase("open");} else setErr("Código incorrecto."); };
+  if(phase==="open") return <Panel/>;
+  if(phase==="load") return <div style={{padding:40,textAlign:"center",color:C.grey}}>Cargando…</div>;
+  const setup=phase==="setup";
+  return (
+   <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.navy,padding:20}}>
+    <div className="card" style={{maxWidth:360,width:"100%"}}>
+      <div style={{display:"inline-flex",width:44,height:44,borderRadius:22,background:C.lgrey,alignItems:"center",justifyContent:"center",marginBottom:10}}><ILock color={C.orange} size={20}/></div>
+      <div className="bold" style={{fontSize:16,color:C.ink}}>{setup?"Crea el código de acceso":"Panel de Facturación"}</div>
+      <div className="t12" style={{color:C.grey,margin:"4px 0 14px"}}>{setup?"Define un código para proteger el panel. Lo pedirá cada vez que se entre.":"Ingresa el código para acceder."}</div>
+      <input type="password" value={code} placeholder="Código" onChange={e=>{setCode(e.target.value);setErr("");}}
+        onKeyDown={e=>{if(e.key==="Enter"&&!setup)doEnter();}}
+        style={{width:"100%",padding:"9px 12px",borderRadius:8,border:`1px solid ${C.line}`,fontSize:14,marginBottom:8}}/>
+      {setup&&<input type="password" value={code2} placeholder="Repite el código" onChange={e=>{setCode2(e.target.value);setErr("");}}
+        style={{width:"100%",padding:"9px 12px",borderRadius:8,border:`1px solid ${C.line}`,fontSize:14,marginBottom:8}}/>}
+      {err&&<div className="t12" style={{color:C.red,marginBottom:8}}>{err}</div>}
+      <button className="btn" onClick={setup?doSetup:doEnter} style={{background:C.orange,color:"#fff",padding:"10px 16px",fontSize:14,width:"100%",justifyContent:"center"}}>{setup?"Crear y entrar":"Entrar"}</button>
+      <div className="t10" style={{color:C.grey,marginTop:12}}>Nota: es un control de acceso básico del lado del cliente, no un sistema de seguridad. No lo uses para datos altamente sensibles.</div>
+    </div>
+   </div>);
+}
+
+/* ===== Error boundary + montaje ===== */
+class Boundary extends React.Component{
+  constructor(p){super(p);this.state={e:null};}
+  static getDerivedStateFromError(e){return {e};}
+  render(){ if(this.state.e) return <div style={{padding:24,fontFamily:"system-ui"}}>
+      <div style={{fontWeight:700,color:C.red,fontSize:15}}>Ocurrió un error al mostrar el panel</div>
+      <div style={{color:C.ink,fontSize:13,margin:"8px 0"}}>{String(this.state.e&&this.state.e.message||this.state.e)}</div>
+      <button className="btn" onClick={()=>location.reload()} style={{background:C.navy,color:"#fff",padding:"8px 14px"}}>Recargar</button>
+    </div>;
+    return this.props.children; }
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<Boundary><Gate/></Boundary>);
+</script>
