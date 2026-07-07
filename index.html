@@ -97,6 +97,12 @@ const MAP={
 const REGION={Huechuraba:"R. Metropolitana",Pudahuel:"R. Metropolitana",Colina:"R. Metropolitana",Talcahuano:"Biobío",Curepto:"Maule",Linares:"Maule","Santo Domingo":"Valparaíso","Sin asignar":"—"};
 const CONDO="Condominio Bodegas Huechuraba", GALPON_HUE="ARRIENDO DE GALPONES HUECHURABA";
 
+/* ===== Propiedades (maestro por ROL del SII) ===== */
+const PROPS_SEED = [{"rol":"00155-00857","comuna":"Chonchi","direccion":"PD B- 20 RIO BRAVO FUNDO QUILAN","destino":"Agricola","avaluo":6473234,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"02001-00086","comuna":"Colina","direccion":"LT 146 LOS LIBERTADORES","destino":"Industria","avaluo":1246426166,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00631-00005","comuna":"Concepcion","direccion":"M RODRIGUEZ 1151 LT B","destino":"Comercio","avaluo":79854531,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00211-00042","comuna":"Curepto","direccion":"EL LOMAJE SN","destino":"Agricola","avaluo":47687378,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00213-00016","comuna":"Curepto","direccion":"SANTA EMILIANA","destino":"Agricola","avaluo":64311123,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"03130-00106","comuna":"Huechuraba","direccion":"CAM EL GUANACO 6464                                          COMPLEJO INDUSTRIAL","destino":"Bodega Y Almacenaje","avaluo":12589131703,"link":"Condominio Bodegas Huechuraba","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"00045-00009","comuna":"La Estrella","direccion":"QUEBRADA AZUL","destino":"Agricola","avaluo":772708590,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00151-00046","comuna":"Lampa","direccion":"LO SOLAR PC 27","destino":"Agricola","avaluo":109207467,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00764-00208","comuna":"Lampa","direccion":"PERALILLO PC 20 A","destino":"Agricola","avaluo":111497130,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00537-00177","comuna":"Linares","direccion":"RUTA 5 SUR KM 301 COSTADO OTE","destino":"Sitio Eriazo","avaluo":74948872,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00537-00180","comuna":"Linares","direccion":"LONGITUDINAL SUR KM 298","destino":"Otros No Considerados","avaluo":168259879,"link":"Longitudinal Sur Km 298, Linares","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"00537-00517","comuna":"Linares","direccion":"PP SAN MARTIN PC 22 LT 3","destino":"Agricola","avaluo":12446100,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00457-00129","comuna":"Puchuncavi","direccion":"VIA F- 120 LOTE D ST. 129 MAITENCILLO","destino":"Sitio Eriazo","avaluo":40963244,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"01989-00014","comuna":"Talcahuano","direccion":"J REPULLO 1465 LOTE 1                                        H FAMILIARES","destino":"Industria","avaluo":62648584,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"01989-00045","comuna":"Talcahuano","direccion":"PJE JAIME REPULLO 1437","destino":"Industria","avaluo":650757164,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00878-00471","comuna":"Coquimbo","direccion":"PC 29 ETAPA D LT 2                                           LA HERRADURA","destino":"Sitio Eriazo","avaluo":21641866,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"03669-00520","comuna":"Lo Barnechea","direccion":"AV VALLE MONAST 2588 DP A- 101                               VALLE DEL MONASTERIO","destino":"Habitacional","avaluo":220092339,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"03669-00544","comuna":"Lo Barnechea","direccion":"AV VALLE DEL MONAST 2588 BX A- 01                            VALLE DEL MONASTERIO","destino":"Estacionamiento","avaluo":8674980,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"03669-00570","comuna":"Lo Barnechea","direccion":"AV VALLE DEL MONAST 2588 BX A- 27                            VALLE DEL MONASTERIO","destino":"Estacionamiento","avaluo":6477789,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"03669-00586","comuna":"Lo Barnechea","direccion":"AV VALLE DEL MONAST 2588 BD A- 20                            VALLE DEL MONASTERIO","destino":"Bodega Y Almacenaje","avaluo":2056854,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00100-00007","comuna":"Pudahuel","direccion":"AV CLAUDIO ARRAU 9460 LT 7 LOTEO SAN PEDRO","destino":"Sitio Eriazo","avaluo":587666078,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00100-00020","comuna":"Pudahuel","direccion":"AV AMERICO VESPUCIO 552 LT 6 B","destino":"Sitio Eriazo","avaluo":668583177,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00100-00021","comuna":"Pudahuel","direccion":"AV CLAUDIO ARRAU 9466 LOTEO SAN PEDRO","destino":"Sitio Eriazo","avaluo":878135858,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"02599-00121","comuna":"Pudahuel","direccion":"CAMINO SAN PEDRO 9650                                        PUERTO SANTIAGO","destino":"Industria","avaluo":8712827685,"link":"Camino San Pedro 9650, Pudahuel","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"02599-00211","comuna":"Pudahuel","direccion":"FUNDO LAS MERCEDES LT 1 MP SDE- 3 SAN PABLO ANTIGUO","destino":"Sitio Eriazo","avaluo":1010178414,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"07761-00097","comuna":"Pudahuel","direccion":"ANTILLANCA 584","destino":"Bodega Y Almacenaje","avaluo":4515775736,"link":"Antillanca 584, Pudahuel","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"03130-00210","comuna":"Huechuraba","direccion":"HJ 5 DEL CARMEN HUECH LT 9","destino":"Agricola","avaluo":23196612,"link":"Fundo El Carmen (Lote 9), Huechuraba","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"00123-00003","comuna":"Litueche","direccion":"HIJUELA III EL DESCANSO","destino":"Agricola","avaluo":401648729,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00123-00004","comuna":"Litueche","direccion":"HIJ IV LOS PERALES","destino":"Agricola","avaluo":250524469,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"02011-00031","comuna":"Melipilla","direccion":"EL SAUCE RESTO LT K","destino":"Agricola","avaluo":1254240313,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"02821-00301","comuna":"Melipilla","direccion":"LOTE-BLT-B-2 FUNDO ULMEN","destino":"Agricola","avaluo":367910753,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"00028-00002","comuna":"San Pedro","direccion":"HDA CORNECHE BC BOSQUE","destino":"Forestal","avaluo":472671470,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"01603-00010","comuna":"Santo Domingo","direccion":"SANTA AMALIA DE BUCALEMU","destino":"Agricola","avaluo":825186880,"link":"Campos Santo Domingo","estado":"Activa","m2":"","bodegas":"","nota":""},{"rol":"01603-00156","comuna":"Santo Domingo","direccion":"HIJUELA 4 LOS ROBLESBUCALEMU HIJ NOVENA","destino":"Agricola","avaluo":116102490,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""},{"rol":"01603-00366","comuna":"Santo Domingo","direccion":"EL PEUMO HJ 2","destino":"Agricola","avaluo":645259468,"link":"","estado":"Vacante","m2":"","bodegas":"","nota":""}];
+function normTxt(s){ return (s||"").toString().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
+function toks(s){ return normTxt(s).split(" ").filter(function(w){return w.length>2;}); }
+function simil(a,b){ var A=new Set(toks(a)), B=new Set(toks(b)); if(!A.size||!B.size)return 0; var c=0; A.forEach(function(w){if(B.has(w))c++;}); return c/Math.max(A.size,B.size); }
+
 function conceptoDe(s){ if(s==null||s==="")return "(SIN CONCEPTO)"; const m=String(s).match(/^\s*\[([^\]]+)\]/); return m?m[1].trim():"(SIN CONCEPTO)"; }
 function parseNum(v){ if(v==null||v==="")return 0; if(typeof v==="number")return v; const s=String(v).replace(/\./g,"").replace(/,/g,".").replace(/[^0-9.\-]/g,""); const n=parseFloat(s); return isNaN(n)?0:n; }
 function normFecha(v){ if(v==null||v==="")return null; if(v instanceof Date&&!isNaN(v))return v.getFullYear()+"-"+String(v.getMonth()+1).padStart(2,"0")+"-"+String(v.getDate()).padStart(2,"0"); const d=new Date(v); if(!isNaN(d))return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); return null; }
@@ -121,16 +127,16 @@ async function loadState(){
   try{
     const res=await fetch("/api/data",{cache:"no-store"});
     if(res.ok){ REMOTE=true; const t=await res.text();
-      if(t){ const o=JSON.parse(t); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45}; }
-      return {rows:[],cap:45};
+      if(t){ const o=JSON.parse(t); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45, props:o.props||null}; }
+      return {rows:[],cap:45,props:null};
     }
   }catch(e){}
   REMOTE=false;
-  try{ const r=localStorage.getItem("bd_state"); if(r){ const o=JSON.parse(r); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45}; } }catch(e){}
-  return {rows:[],cap:45};
+  try{ const r=localStorage.getItem("bd_state"); if(r){ const o=JSON.parse(r); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45, props:o.props||null}; } }catch(e){}
+  return {rows:[],cap:45,props:null};
 }
-async function saveState(rows,cap){
-  const body=JSON.stringify({rows:packObj(rows),cap});
+async function saveState(rows,cap,props){
+  const body=JSON.stringify({rows:packObj(rows),cap,props});
   try{ localStorage.setItem("bd_state",body); }catch(e){}   // copia local SIEMPRE
   if(REMOTE){ try{ const r=await fetch("/api/data",{method:"POST",headers:{"content-type":"application/json"},body}); return r.ok; }catch(e){ return false; } }
   return true;
@@ -279,7 +285,10 @@ function ResumenTab({rows}){
 
 /* ===================== TAB Ocupación ===================== */
 function OcupTab({rows,cap,setCap}){
-  const galp=useMemo(()=>rows.filter(r=>r.concepto===GALPON_HUE&&r.ym),[rows]);
+  const galpAll=useMemo(()=>rows.filter(r=>r.concepto===GALPON_HUE&&r.ym),[rows]);
+  const aniosDisp=useMemo(()=>[...new Set(galpAll.map(r=>r.anio))].sort(),[galpAll]);
+  const [fY,setFY]=useState("todos"),[fM,setFM]=useState("todos");
+  const galp=useMemo(()=>galpAll.filter(r=>(fY==="todos"||r.anio===+fY)&&(fM==="todos"||r.mes===+fM)),[galpAll,fY,fM]);
   const D=useMemo(()=>{ const cnt={},val={};
     galp.forEach(r=>{ (cnt[r.anio]=cnt[r.anio]||{}); (val[r.anio]=val[r.anio]||{});
       cnt[r.anio][r.mes]=(cnt[r.anio][r.mes]||0)+1; val[r.anio][r.mes]=(val[r.anio][r.mes]||0)+(r.n||0); });
@@ -296,6 +305,15 @@ function OcupTab({rows,cap,setCap}){
   const occColor=o=>o==null?"#F1F3F6":o>=98?C.greenD:o>=93?"#3FA76A":o>=88?"#86C99B":o>=83?"#F2C879":"#E59A8A";
   return (
    <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="card">
+      <div className="row wrap gap2">
+        <IFilter color={C.grey}/>
+        <Select label="Año" value={fY} onChange={setFY} options={[["todos","Todos"],...aniosDisp.map(a=>[String(a),String(a)])]}/>
+        <Select label="Mes" value={fM} onChange={setFM} options={[["todos","Todos"],...MES.map((m,i)=>[String(i+1),m])]}/>
+        {(fY!=="todos"||fM!=="todos")&&<button className="btn t11" onClick={()=>{setFY("todos");setFM("todos");}} style={{background:C.lgrey,color:C.grey,padding:"4px 8px"}}>Limpiar</button>}
+        <span className="t10" style={{color:C.grey}}>Los indicadores, el mapa y la valorización se calculan según el período elegido.</span>
+      </div>
+    </div>
     <div className="card">
       <div className="row wrap gap3" style={{justifyContent:"space-between"}}>
         <div><STitle icon={IWare}>Ocupación del condominio de bodegas de Huechuraba</STitle>
@@ -532,22 +550,227 @@ function ImportTab({raw,enriched,setRows,notify,mode}){
 }
 
 /* ===================== App ===================== */
+/* ===================== TAB Propiedades ===================== */
+const cleanDir=s=>(s||"").replace(/\s+/g," ").trim();
+const EXCL_DIR=new Set(["Servicios operacionales (bomba/agua)","Servicios operacionales (electricidad)","Servicios operacionales (riles)","Publicidad vía pública","Ajustes"]);
+function PropiedadesTab({props,setProps,rows,notify}){
+  const [fCom,setFCom]=useState("todas"),[fEst,setFEst]=useState("todos"),[q,setQ]=useState("");
+  const [editing,setEditing]=useState(null); // objeto propiedad en edición
+  const [editRol,setEditRol]=useState(null); // rol original (para reemplazar)
+  const [plan,setPlan]=useState(null),[accept,setAccept]=useState({});
+  const fileRef=useRef(null);
+
+  const comunas=useMemo(()=>[...new Set(props.map(p=>p.comuna))].sort(),[props]);
+  const totalAval=props.reduce((a,p)=>a+(+p.avaluo||0),0);
+  const nAct=props.filter(p=>p.estado==="Activa").length, nVac=props.length-nAct;
+
+  // direcciones de facturación (propiedades) que generan facturación
+  const facDirs=useMemo(()=>{
+    const o={}; rows.forEach(r=>{ if(!r.ym&&!r.n)return; if(EXCL_DIR.has(r.direccion))return; if(!r.direccion||r.direccion==="Otros")return;
+      o[r.direccion]=(o[r.direccion]||0)+(r.n||0); });
+    return Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([d,neto])=>({dir:d,neto}));
+  },[rows]);
+
+  const filtered=useMemo(()=>props.filter(p=>
+    (fCom==="todas"||p.comuna===fCom)&&(fEst==="todos"||p.estado===fEst)&&
+    (!q||(p.rol+" "+p.direccion+" "+p.comuna+" "+p.destino).toLowerCase().includes(q.toLowerCase()))
+  ),[props,fCom,fEst,q]);
+
+  const byComuna=useMemo(()=>{ const o={}; filtered.forEach(p=>{ (o[p.comuna]=o[p.comuna]||[]).push(p); });
+    return Object.entries(o).sort((a,b)=>a[0].localeCompare(b[0])); },[filtered]);
+
+  const guardar=async(next)=>{ await setProps(next); };
+  const linkProp=async(rol,facDir)=>{ const next=props.map(p=>{ if(p.rol===rol) return {...p,link:facDir,estado:"Activa"};
+    if(p.link===facDir && p.rol!==rol) return {...p,link:"",estado:"Vacante"}; return p; }); await guardar(next); notify("Propiedad asociada a "+cleanDir(facDir)+"."); };
+  const unlink=async(rol)=>{ const next=props.map(p=>p.rol===rol?{...p,link:"",estado:"Vacante"}:p); await guardar(next); };
+
+  const openNew=()=>{ setEditRol(null); setEditing({rol:"",comuna:"",direccion:"",destino:"",avaluo:0,estado:"Vacante",link:"",m2:"",bodegas:"",nota:""}); };
+  const saveEdit=async()=>{ if(!editing.rol.trim()){ notify("El ROL es obligatorio.","err"); return; }
+    let next; if(editRol){ next=props.map(p=>p.rol===editRol?editing:p); }
+    else { if(props.some(p=>p.rol===editing.rol)){ notify("Ya existe una propiedad con ese ROL.","err"); return; } next=[...props,editing]; }
+    await guardar(next); setEditing(null); setEditRol(null); notify("Propiedad guardada."); };
+  const delProp=async(rol)=>{ await guardar(props.filter(p=>p.rol!==rol)); notify("Propiedad eliminada."); };
+
+  // ---- importar roles ----
+  const onFile=async e=>{ const file=e.target.files&&e.target.files[0]; if(!file)return;
+    try{ const buf=await file.arrayBuffer(); const wb=XLSX.read(buf,{type:"array"}); const ws=wb.Sheets[wb.SheetNames[0]];
+      const arr=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+      let hi=0; for(let i=0;i<Math.min(arr.length,8);i++){ const j=arr[i].map(x=>String(x).toLowerCase()).join(" "); if(j.includes("rol")||j.includes("aval")){hi=i;break;} }
+      const H=arr[hi].map(x=>String(x).toLowerCase().trim()); const find=(...k)=>H.findIndex(h=>k.some(x=>h.includes(x)));
+      const iRol=find("rol"),iCom=find("comuna"),iDir=find("direc"),iDes=find("destino"),iAv=find("aval");
+      if(iRol<0){ notify("No encuentro la columna ROL.","err"); return; }
+      const inc=[];
+      for(let i=hi+1;i<arr.length;i++){ const r=arr[i]; if(!r||r.every(x=>x===""||x==null))continue; const rol=String(r[iRol]||"").trim(); if(!rol)continue;
+        inc.push({ rol, comuna:iCom>=0?String(r[iCom]||"").trim().replace(/\b\w/g,c=>c.toUpperCase()):"", direccion:iDir>=0?cleanDir(String(r[iDir]||"")):"",
+          destino:iDes>=0?String(r[iDes]||"").trim().replace(/\b\w/g,c=>c.toUpperCase()):"", avaluo:iAv>=0?(parseInt(String(r[iAv]).replace(/[^0-9]/g,""))||0):0 }); }
+      const byRol={}; props.forEach(p=>byRol[p.rol]=p);
+      const nuevas=[],cambios=[]; let iguales=0;
+      inc.forEach(x=>{ const ex=byRol[x.rol];
+        if(!ex){ nuevas.push(x); }
+        else { const dif=(+ex.avaluo!==+x.avaluo)||(cleanDir(ex.direccion)!==x.direccion&&x.direccion)||(ex.destino!==x.destino&&x.destino)||(ex.comuna!==x.comuna&&x.comuna);
+          if(dif) cambios.push({rol:x.rol,old:ex,nw:x}); else iguales++; } });
+      const ac={}; cambios.forEach(c=>ac[c.rol]=true); setAccept(ac);
+      setPlan({nuevas,cambios,iguales,fileName:file.name});
+    }catch(err){ notify("Error al leer: "+err.message,"err"); }
+    if(fileRef.current)fileRef.current.value="";
+  };
+  const confirmImport=async()=>{ if(!plan)return; const byRol={}; props.forEach(p=>byRol[p.rol]=p);
+    plan.nuevas.forEach(x=>{ byRol[x.rol]={...x,estado:"Vacante",link:"",m2:"",bodegas:"",nota:""}; });
+    plan.cambios.forEach(c=>{ if(accept[c.rol]){ const ex=byRol[c.rol]; byRol[c.rol]={...ex,avaluo:c.nw.avaluo,direccion:c.nw.direccion||ex.direccion,destino:c.nw.destino||ex.destino,comuna:c.nw.comuna||ex.comuna}; } });
+    await guardar(Object.values(byRol)); notify(`Importado: ${plan.nuevas.length} nuevas, ${Object.values(accept).filter(Boolean).length} actualizadas, ${plan.iguales} iguales.`); setPlan(null); setAccept({}); };
+
+  const estadoColor=e=>e==="Activa"?C.green:(e==="Vacante"?C.grey:C.amber);
+
+  return (
+   <div style={{display:"flex",flexDirection:"column",gap:16}}>
+    <div className="grid g4">
+      <Chip label="Propiedades" value={numCL(props.length)} color={C.navy}/>
+      <Chip label="Activas" value={numCL(nAct)} sub="con facturación" color={C.green}/>
+      <Chip label="Vacantes" value={numCL(nVac)} sub="sin facturación" color={C.grey}/>
+      <Chip label="Avalúo fiscal total" value={clp(totalAval)} color={C.orange}/>
+    </div>
+
+    {/* Cruce con facturación */}
+    <div className="card">
+      <STitle icon={ILayers}>Cruce con facturación · asociar propiedades</STitle>
+      <div className="t11" style={{color:C.grey,marginBottom:8}}>Cada dirección que genera facturación debe estar asociada a una propiedad (por ROL). Las dudosas quedan para que confirmes la unión.</div>
+      <div className="ovx"><table className="t11">
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Dirección facturada</th><th style={{textAlign:"right"}}>Neto</th><th style={{textAlign:"left"}}>Propiedad asociada (ROL)</th></tr></thead>
+        <tbody>{facDirs.map((fd,i)=>{ const linked=props.find(p=>p.link===fd.dir);
+          const suger=[...props].map(p=>({p,s:simil(fd.dir,p.direccion+" "+p.comuna)})).sort((a,b)=>b.s-a.s).filter(x=>x.s>0).slice(0,6);
+          return (
+          <tr key={fd.dir} style={{background:i%2?"#fff":C.lgrey}}>
+            <td className="semib">{cleanDir(fd.dir)}</td>
+            <td style={{textAlign:"right"}}>{clp(fd.neto)}</td>
+            <td>
+              {linked
+                ? <span className="row gap2"><span style={{color:C.green}}>✓ {linked.rol} · {cleanDir(linked.direccion).slice(0,28)}</span>
+                    <button className="btn t10" onClick={()=>unlink(linked.rol)} style={{background:C.lgrey,color:C.red,padding:"2px 6px"}}>quitar</button></span>
+                : <select value="" onChange={e=>e.target.value&&linkProp(e.target.value,fd.dir)} style={{fontSize:11,padding:"3px 6px",borderRadius:6,border:`1px solid ${C.amber}`,color:C.ink,maxWidth:280}}>
+                    <option value="">⚠ Asociar a una propiedad…</option>
+                    {suger.map(({p,s})=><option key={p.rol} value={p.rol}>{s>=0.3?"★ ":""}{p.rol} · {cleanDir(p.direccion).slice(0,32)} ({p.comuna})</option>)}
+                    <option disabled>──────────</option>
+                    {props.filter(p=>!suger.some(x=>x.p.rol===p.rol)).map(p=><option key={p.rol} value={p.rol}>{p.rol} · {cleanDir(p.direccion).slice(0,32)}</option>)}
+                  </select>}
+            </td>
+          </tr>); })}</tbody>
+      </table></div>
+    </div>
+
+    {/* Filtros + acciones */}
+    <div className="card">
+      <div className="row wrap gap2">
+        <IFilter color={C.grey}/>
+        <Select label="Comuna" value={fCom} onChange={setFCom} options={[["todas","Todas"],...comunas.map(c=>[c,c])]}/>
+        <Select label="Estado" value={fEst} onChange={setFEst} options={[["todos","Todos"],["Activa","Activa"],["Vacante","Vacante"]]}/>
+        <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Buscar rol/dirección…" style={{fontSize:12,padding:"5px 8px",borderRadius:6,border:`1px solid ${C.line}`,minWidth:160}}/>
+        <div className="flex1"/>
+        <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv" onChange={onFile} style={{display:"none"}}/>
+        <button className="btn t12" onClick={()=>fileRef.current&&fileRef.current.click()} style={{background:C.lgrey,color:C.navy,padding:"6px 12px"}}><IUp size={14}/> Importar roles</button>
+        <button className="btn t12" onClick={openNew} style={{background:C.orange,color:"#fff",padding:"6px 12px"}}>+ Agregar propiedad</button>
+      </div>
+    </div>
+
+    {/* Revisión de importación de roles */}
+    {plan&&<div className="card">
+      <STitle icon={IRefresh}>Revisión de importación de roles · {plan.fileName}</STitle>
+      <div className="grid g3" style={{marginBottom:12}}>
+        <Chip label="Nuevas" value={numCL(plan.nuevas.length)} sub="se agregan" color={C.green}/>
+        <Chip label="Con cambios" value={numCL(plan.cambios.length)} sub="requieren tu ok" color={C.amber}/>
+        <Chip label="Iguales" value={numCL(plan.iguales)} sub="se ignoran" color={C.grey}/>
+      </div>
+      {plan.cambios.length>0&&<div className="ovx" style={{maxHeight:240,overflowY:"auto",marginBottom:12}}><table className="t11">
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th>Ok</th><th style={{textAlign:"left"}}>ROL</th><th style={{textAlign:"right"}}>Avalúo antes → después</th></tr></thead>
+        <tbody>{plan.cambios.map((c,i)=>(<tr key={c.rol} style={{background:i%2?"#fff":C.lgrey}}>
+          <td style={{textAlign:"center"}}><input type="checkbox" checked={!!accept[c.rol]} onChange={e=>setAccept(a=>({...a,[c.rol]:e.target.checked}))}/></td>
+          <td>{c.rol}</td><td style={{textAlign:"right"}}><span style={{color:C.grey}}>{clp(c.old.avaluo)}</span><span style={{color:C.orange}}> → {clp(c.nw.avaluo)}</span></td>
+        </tr>))}</tbody></table></div>}
+      <div className="row gap2">
+        <button className="btn" onClick={confirmImport} style={{background:C.green,color:"#fff",padding:"8px 14px",fontSize:13}}><ICheck/> Confirmar</button>
+        <button className="btn" onClick={()=>{setPlan(null);setAccept({});}} style={{background:C.lgrey,color:C.ink,padding:"8px 14px",fontSize:13}}><IX/> Cancelar</button>
+      </div>
+    </div>}
+
+    {/* Listado por comuna */}
+    {byComuna.map(([com,list])=>(
+      <div className="card" key={com}>
+        <STitle icon={IPin}>{com} · {list.length} propiedad(es) · avalúo {clp(list.reduce((a,p)=>a+(+p.avaluo||0),0))}</STitle>
+        <div className="ovx"><table className="t11">
+          <thead><tr style={{background:C.navy,color:"#fff"}}>
+            <th style={{textAlign:"left"}}>ROL</th><th style={{textAlign:"left"}}>Dirección</th><th style={{textAlign:"left"}}>Destino</th>
+            <th style={{textAlign:"right"}}>Avalúo fiscal</th><th style={{textAlign:"left"}}>Estado</th><th style={{textAlign:"left"}}>Facturación</th><th></th></tr></thead>
+          <tbody>{list.map((p,i)=>(
+            <tr key={p.rol} style={{background:i%2?"#fff":C.lgrey}}>
+              <td className="semib">{p.rol}</td>
+              <td>{cleanDir(p.direccion)}</td>
+              <td>{p.destino}</td>
+              <td style={{textAlign:"right"}}>{clp(p.avaluo)}</td>
+              <td><span style={{color:estadoColor(p.estado),fontWeight:600}}>● {p.estado}</span></td>
+              <td className="t10" style={{color:C.grey}}>{p.link?cleanDir(p.link).slice(0,26):"—"}</td>
+              <td style={{whiteSpace:"nowrap"}}>
+                <button className="btn t10" onClick={()=>{setEditRol(p.rol);setEditing({...p});}} style={{background:C.lgrey,color:C.navy,padding:"2px 8px",marginRight:4}}>Editar</button>
+                <button className="btn t10" onClick={()=>{ if(confirm("¿Eliminar la propiedad "+p.rol+"?")) delProp(p.rol); }} style={{background:"#fff",color:C.red,border:`1px solid ${C.line}`,padding:"2px 8px"}}>✕</button>
+              </td>
+            </tr>))}</tbody>
+        </table></div>
+      </div>))}
+    {byComuna.length===0&&<div className="card"><div className="t12" style={{color:C.grey,textAlign:"center",padding:12}}>No hay propiedades con esos filtros.</div></div>}
+
+    {/* Modal edición */}
+    {editing&&<div style={{position:"fixed",inset:0,background:"rgba(27,42,74,.45)",display:"flex",alignItems:"center",justifyContent:"center",padding:16,zIndex:50}}>
+      <div className="card" style={{maxWidth:460,width:"100%",maxHeight:"90vh",overflowY:"auto"}}>
+        <div className="bold t14" style={{color:C.ink,marginBottom:10}}>{editRol?"Editar propiedad":"Nueva propiedad"}</div>
+        {[["ROL","rol"],["Comuna","comuna"],["Dirección","direccion"],["Destino","destino"]].map(([lb,k])=>(
+          <label key={k} className="t11" style={{display:"block",marginBottom:8}}><span className="semib" style={{color:C.grey}}>{lb}</span>
+            <input value={editing[k]||""} onChange={e=>setEditing({...editing,[k]:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>))}
+        <div className="row gap2">
+          <label className="t11 flex1"><span className="semib" style={{color:C.grey}}>Avalúo fiscal</span>
+            <input type="number" value={editing.avaluo||0} onChange={e=>setEditing({...editing,avaluo:+e.target.value||0})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
+          <label className="t11 flex1"><span className="semib" style={{color:C.grey}}>Estado</span>
+            <select value={editing.estado} onChange={e=>setEditing({...editing,estado:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}>
+              {["Vacante","Activa","En venta","En desarrollo"].map(s=><option key={s}>{s}</option>)}</select></label>
+        </div>
+        <div className="row gap2" style={{marginTop:8}}>
+          <label className="t11 flex1"><span className="semib" style={{color:C.grey}}>m² (opcional)</span>
+            <input value={editing.m2||""} onChange={e=>setEditing({...editing,m2:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
+          <label className="t11 flex1"><span className="semib" style={{color:C.grey}}>N° bodegas (opcional)</span>
+            <input value={editing.bodegas||""} onChange={e=>setEditing({...editing,bodegas:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
+        </div>
+        <label className="t11" style={{display:"block",marginTop:8}}><span className="semib" style={{color:C.grey}}>Facturación asociada</span>
+          <select value={editing.link||""} onChange={e=>setEditing({...editing,link:e.target.value,estado:e.target.value?"Activa":editing.estado})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}>
+            <option value="">— Sin asociar —</option>{facDirs.map(fd=><option key={fd.dir} value={fd.dir}>{cleanDir(fd.dir)}</option>)}</select></label>
+        <label className="t11" style={{display:"block",marginTop:8}}><span className="semib" style={{color:C.grey}}>Nota</span>
+          <input value={editing.nota||""} onChange={e=>setEditing({...editing,nota:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
+        <div className="row gap2" style={{marginTop:14}}>
+          <button className="btn" onClick={saveEdit} style={{background:C.green,color:"#fff",padding:"8px 14px",fontSize:13}}><ICheck/> Guardar</button>
+          <button className="btn" onClick={()=>{setEditing(null);setEditRol(null);}} style={{background:C.lgrey,color:C.ink,padding:"8px 14px",fontSize:13}}>Cancelar</button>
+        </div>
+      </div>
+    </div>}
+   </div>);
+}
+
 function Panel(){
   const [raw,setRawState]=useState([]);
   const [cap,setCapState]=useState(45);
+  const [props,setPropsState]=useState([]);
   const [tab,setTab]=useState("resumen");
   const [toast,setToast]=useState(null);
   const [mode,setMode]=useState("cargando…");
   const [ready,setReady]=useState(false);
-  const rawRef=useRef([]), capRef=useRef(45);
+  const rawRef=useRef([]), capRef=useRef(45), propsRef=useRef([]);
   const rows=useMemo(()=>enrich(raw),[raw]);
   const notify=(m,t="ok")=>{ setToast({t,m}); setTimeout(()=>setToast(null),4000); };
-  const setRows=useCallback(async next=>{ setRawState(next); rawRef.current=next; const ok=await saveState(next,capRef.current); if(!ok) notify("No se pudo guardar en la nube. Revisa la conexión.","err"); },[]);
-  const setCap=useCallback(async v=>{ setCapState(v); capRef.current=v; await saveState(rawRef.current,v); },[]);
-  const refresh=useCallback(async()=>{ const st=await loadState(); setRawState(st.rows); setCapState(st.cap); rawRef.current=st.rows; capRef.current=st.cap; setMode(modeLabel()); notify("Datos actualizados."); },[]);
-  useEffect(()=>{ (async()=>{ const st=await loadState(); setRawState(st.rows); setCapState(st.cap); rawRef.current=st.rows; capRef.current=st.cap; setMode(modeLabel()); setReady(true); })(); },[]);
+  const setRows=useCallback(async next=>{ setRawState(next); rawRef.current=next; const ok=await saveState(next,capRef.current,propsRef.current); if(!ok) notify("No se pudo guardar en la nube. Revisa la conexión.","err"); },[]);
+  const setCap=useCallback(async v=>{ setCapState(v); capRef.current=v; await saveState(rawRef.current,v,propsRef.current); },[]);
+  const setProps=useCallback(async next=>{ setPropsState(next); propsRef.current=next; const ok=await saveState(rawRef.current,capRef.current,next); if(!ok) notify("No se pudo guardar en la nube.","err"); },[]);
+  const refresh=useCallback(async()=>{ const st=await loadState(); setRawState(st.rows); setCapState(st.cap); const pr=st.props||PROPS_SEED; setPropsState(pr); rawRef.current=st.rows; capRef.current=st.cap; propsRef.current=pr; setMode(modeLabel()); notify("Datos actualizados."); },[]);
+  useEffect(()=>{ (async()=>{ const st=await loadState(); const pr=(st.props&&st.props.length)?st.props:PROPS_SEED;
+    setRawState(st.rows); setCapState(st.cap); setPropsState(pr); rawRef.current=st.rows; capRef.current=st.cap; propsRef.current=pr;
+    setMode(modeLabel()); setReady(true);
+    if(!(st.props&&st.props.length)){ try{ await saveState(st.rows,st.cap,pr); }catch(e){} } })(); },[]);
   const empty=rows.length===0;
-  const TABS=[["resumen","Resumen general",IDash],["ocup","Ocupación Huechuraba",IWare],["resto","El resto",ILayers],["import","Importación",IDb]];
+  const TABS=[["resumen","Resumen general",IDash],["ocup","Ocupación Huechuraba",IWare],["resto","El resto",ILayers],["props","Propiedades",IBuild],["import","Importación",IDb]];
   if(!ready) return <div style={{padding:40,textAlign:"center",color:C.grey}}>Cargando…</div>;
   return (
    <div>
@@ -567,7 +790,7 @@ function Panel(){
     <div style={{height:3,background:C.orange}}/>
     {toast&&<div className="row gap2 t12" style={{margin:"12px 20px 0",padding:"8px 12px",borderRadius:8,background:toast.t==="err"?"#FDECEA":"#E9F6EF",color:toast.t==="err"?C.red:C.greenD}}>{toast.t==="err"?<IWarn size={14}/>:<ICheck size={14}/>}{toast.m}</div>}
     <div style={{padding:20}}>
-      {empty&&tab!=="import"
+      {empty&&tab!=="import"&&tab!=="props"
         ? <div style={{textAlign:"center",padding:"60px 0"}}>
             <div style={{display:"inline-flex",width:56,height:56,borderRadius:28,background:C.lgrey,alignItems:"center",justifyContent:"center",marginBottom:12}}><IUp color={C.orange} size={22}/></div>
             <div className="bold" style={{fontSize:16,color:C.ink}}>Aún no hay datos</div>
@@ -577,6 +800,7 @@ function Panel(){
         : tab==="resumen"?<ResumenTab rows={rows}/>
         : tab==="ocup"?<OcupTab rows={rows} cap={cap} setCap={setCap}/>
         : tab==="resto"?<RestoTab rows={rows}/>
+        : tab==="props"?<PropiedadesTab props={props} setProps={setProps} rows={rows} notify={notify}/>
         : <ImportTab raw={raw} enriched={rows} setRows={setRows} notify={notify} mode={mode}/>}
     </div>
     <div className="t10" style={{padding:"0 20px 20px",color:C.grey}}>Comuna · dirección · tipo se derivan de la glosa. Gastos comunes → Huechuraba. Servicios (bomba/luz/riles) heredan la comuna del arriendo del cliente. Corderos y terneros → Santo Domingo.</div>
