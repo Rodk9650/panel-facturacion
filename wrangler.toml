@@ -10,4 +10,4 @@ binding = "ASSETS"
 # Base de datos KV. Reemplaza el id por el de tu namespace "panel-facturacion".
 [[kv_namespaces]]
 binding = "PANEL"
-id = 14e37889d27e40548e02da8895b3af26
+id = "14e37889d27e40548e02da8895b3af26"
