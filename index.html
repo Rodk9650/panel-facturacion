@@ -580,11 +580,11 @@ function PropiedadesTab({props,setProps,rows,notify}){
     return Object.entries(o).sort((a,b)=>a[0].localeCompare(b[0])); },[filtered]);
 
   const guardar=async(next)=>{ await setProps(next); };
-  const linkProp=async(rol,facDir)=>{ const next=props.map(p=>{ if(p.rol===rol) return {...p,link:facDir,estado:"Activa"};
-    if(p.link===facDir && p.rol!==rol) return {...p,link:"",estado:"Vacante"}; return p; }); await guardar(next); notify("Propiedad asociada a "+cleanDir(facDir)+"."); };
-  const unlink=async(rol)=>{ const next=props.map(p=>p.rol===rol?{...p,link:"",estado:"Vacante"}:p); await guardar(next); };
+  const lk=p=>Array.isArray(p.links)?p.links:(p.link?[p.link]:[]);
+  const addRolToDir=async(rol,facDir)=>{ const next=props.map(p=>{ if(p.rol!==rol)return p; const L=lk(p); if(L.includes(facDir))return p; return {...p,links:[...L,facDir],estado:"Activa"}; }); await guardar(next); notify("Rol "+rol+" asociado a "+cleanDir(facDir)+"."); };
+  const removeRolFromDir=async(rol,facDir)=>{ const next=props.map(p=>{ if(p.rol!==rol)return p; const L=lk(p).filter(d=>d!==facDir); return {...p,links:L,estado:L.length?"Activa":"Vacante"}; }); await guardar(next); };
 
-  const openNew=()=>{ setEditRol(null); setEditing({rol:"",comuna:"",direccion:"",destino:"",avaluo:0,estado:"Vacante",link:"",m2:"",bodegas:"",nota:""}); };
+  const openNew=()=>{ setEditRol(null); setEditing({rol:"",comuna:"",direccion:"",destino:"",avaluo:0,estado:"Vacante",links:[],m2:"",bodegas:"",nota:""}); };
   const saveEdit=async()=>{ if(!editing.rol.trim()){ notify("El ROL es obligatorio.","err"); return; }
     let next; if(editRol){ next=props.map(p=>p.rol===editRol?editing:p); }
     else { if(props.some(p=>p.rol===editing.rol)){ notify("Ya existe una propiedad con ese ROL.","err"); return; } next=[...props,editing]; }
@@ -615,7 +615,7 @@ function PropiedadesTab({props,setProps,rows,notify}){
     if(fileRef.current)fileRef.current.value="";
   };
   const confirmImport=async()=>{ if(!plan)return; const byRol={}; props.forEach(p=>byRol[p.rol]=p);
-    plan.nuevas.forEach(x=>{ byRol[x.rol]={...x,estado:"Vacante",link:"",m2:"",bodegas:"",nota:""}; });
+    plan.nuevas.forEach(x=>{ byRol[x.rol]={...x,estado:"Vacante",links:[],m2:"",bodegas:"",nota:""}; });
     plan.cambios.forEach(c=>{ if(accept[c.rol]){ const ex=byRol[c.rol]; byRol[c.rol]={...ex,avaluo:c.nw.avaluo,direccion:c.nw.direccion||ex.direccion,destino:c.nw.destino||ex.destino,comuna:c.nw.comuna||ex.comuna}; } });
     await guardar(Object.values(byRol)); notify(`Importado: ${plan.nuevas.length} nuevas, ${Object.values(accept).filter(Boolean).length} actualizadas, ${plan.iguales} iguales.`); setPlan(null); setAccept({}); };
 
@@ -633,28 +633,38 @@ function PropiedadesTab({props,setProps,rows,notify}){
     {/* Cruce con facturación */}
     <div className="card">
       <STitle icon={ILayers}>Cruce con facturación · asociar propiedades</STitle>
-      <div className="t11" style={{color:C.grey,marginBottom:8}}>Cada dirección que genera facturación debe estar asociada a una propiedad (por ROL). Las dudosas quedan para que confirmes la unión.</div>
+      <div className="t11" style={{color:C.grey,marginBottom:8}}>Cada dirección facturada puede tener <b>uno o varios roles</b>, y un mismo rol puede ir en <b>varias direcciones</b>. Agrega los que correspondan (★ = sugerido); quitar uno no afecta a las demás.</div>
       <div className="ovx"><table className="t11">
-        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Dirección facturada</th><th style={{textAlign:"right"}}>Neto</th><th style={{textAlign:"left"}}>Propiedad asociada (ROL)</th></tr></thead>
-        <tbody>{facDirs.map((fd,i)=>{ const linked=props.find(p=>p.link===fd.dir);
-          const suger=[...props].map(p=>({p,s:simil(fd.dir,p.direccion+" "+p.comuna)})).sort((a,b)=>b.s-a.s).filter(x=>x.s>0).slice(0,6);
+        <thead><tr style={{background:C.navy,color:"#fff"}}><th style={{textAlign:"left"}}>Dirección facturada</th><th style={{textAlign:"right"}}>Neto</th><th style={{textAlign:"right"}}>Avalúo asociado</th><th style={{textAlign:"left"}}>Roles asociados</th></tr></thead>
+        <tbody>{facDirs.map((fd,i)=>{
+          const asoc=props.filter(p=>lk(p).includes(fd.dir));
+          const avalSum=asoc.reduce((a,p)=>a+(+p.avaluo||0),0);
+          const suger=[...props].filter(p=>!lk(p).includes(fd.dir)).map(p=>({p,s:simil(fd.dir,p.direccion+" "+p.comuna)})).sort((a,b)=>b.s-a.s);
+          const sugTop=suger.filter(x=>x.s>0), rest=suger.filter(x=>x.s<=0);
           return (
-          <tr key={fd.dir} style={{background:i%2?"#fff":C.lgrey}}>
+          <tr key={fd.dir} style={{background:i%2?"#fff":C.lgrey,verticalAlign:"top"}}>
             <td className="semib">{cleanDir(fd.dir)}</td>
             <td style={{textAlign:"right"}}>{clp(fd.neto)}</td>
+            <td style={{textAlign:"right"}}>{avalSum?clp(avalSum):"—"}</td>
             <td>
-              {linked
-                ? <span className="row gap2"><span style={{color:C.green}}>✓ {linked.rol} · {cleanDir(linked.direccion).slice(0,28)}</span>
-                    <button className="btn t10" onClick={()=>unlink(linked.rol)} style={{background:C.lgrey,color:C.red,padding:"2px 6px"}}>quitar</button></span>
-                : <select value="" onChange={e=>e.target.value&&linkProp(e.target.value,fd.dir)} style={{fontSize:11,padding:"3px 6px",borderRadius:6,border:`1px solid ${C.amber}`,color:C.ink,maxWidth:280}}>
-                    <option value="">⚠ Asociar a una propiedad…</option>
-                    {suger.map(({p,s})=><option key={p.rol} value={p.rol}>{s>=0.3?"★ ":""}{p.rol} · {cleanDir(p.direccion).slice(0,32)} ({p.comuna})</option>)}
-                    <option disabled>──────────</option>
-                    {props.filter(p=>!suger.some(x=>x.p.rol===p.rol)).map(p=><option key={p.rol} value={p.rol}>{p.rol} · {cleanDir(p.direccion).slice(0,32)}</option>)}
-                  </select>}
+              <div className="row wrap gap1" style={{marginBottom:4}}>
+                {asoc.length===0&&<span className="t10" style={{color:C.amber}}>⚠ sin asociar</span>}
+                {asoc.map(p=>(
+                  <span key={p.rol} className="row gap1" style={{background:"#E6EEF7",borderRadius:12,padding:"2px 6px 2px 8px",fontSize:10}}>
+                    <span style={{color:C.navy,fontWeight:600}}>{p.rol}</span>
+                    <span onClick={()=>removeRolFromDir(p.rol,fd.dir)} style={{cursor:"pointer",color:C.red,fontWeight:700}}>✕</span>
+                  </span>))}
+              </div>
+              <select value="" onChange={e=>e.target.value&&addRolToDir(e.target.value,fd.dir)} style={{fontSize:11,padding:"3px 6px",borderRadius:6,border:`1px solid ${C.line}`,color:C.ink,maxWidth:300}}>
+                <option value="">+ agregar rol…</option>
+                {sugTop.map(({p,s})=><option key={p.rol} value={p.rol}>{s>=0.3?"★ ":""}{p.rol} · {cleanDir(p.direccion).slice(0,30)} ({p.comuna})</option>)}
+                {sugTop.length>0&&rest.length>0&&<option disabled>──────────</option>}
+                {rest.map(({p})=><option key={p.rol} value={p.rol}>{p.rol} · {cleanDir(p.direccion).slice(0,30)} ({p.comuna})</option>)}
+              </select>
             </td>
           </tr>); })}</tbody>
       </table></div>
+      <div className="t10" style={{color:C.grey,marginTop:6}}>El “avalúo asociado” suma los roles de cada dirección. Si un rol está en dos direcciones, suma en ambas (por eso ese total no es la suma global de propiedades).</div>
     </div>
 
     {/* Filtros + acciones */}
@@ -706,7 +716,7 @@ function PropiedadesTab({props,setProps,rows,notify}){
               <td>{p.destino}</td>
               <td style={{textAlign:"right"}}>{clp(p.avaluo)}</td>
               <td><span style={{color:estadoColor(p.estado),fontWeight:600}}>● {p.estado}</span></td>
-              <td className="t10" style={{color:C.grey}}>{p.link?cleanDir(p.link).slice(0,26):"—"}</td>
+              <td className="t10" style={{color:C.grey}}>{lk(p).length?lk(p).map(d=>cleanDir(d)).join(" · ").slice(0,40):"—"}</td>
               <td style={{whiteSpace:"nowrap"}}>
                 <button className="btn t10" onClick={()=>{setEditRol(p.rol);setEditing({...p});}} style={{background:C.lgrey,color:C.navy,padding:"2px 8px",marginRight:4}}>Editar</button>
                 <button className="btn t10" onClick={()=>{ if(confirm("¿Eliminar la propiedad "+p.rol+"?")) delProp(p.rol); }} style={{background:"#fff",color:C.red,border:`1px solid ${C.line}`,padding:"2px 8px"}}>✕</button>
@@ -736,9 +746,14 @@ function PropiedadesTab({props,setProps,rows,notify}){
           <label className="t11 flex1"><span className="semib" style={{color:C.grey}}>N° bodegas (opcional)</span>
             <input value={editing.bodegas||""} onChange={e=>setEditing({...editing,bodegas:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
         </div>
-        <label className="t11" style={{display:"block",marginTop:8}}><span className="semib" style={{color:C.grey}}>Facturación asociada</span>
-          <select value={editing.link||""} onChange={e=>setEditing({...editing,link:e.target.value,estado:e.target.value?"Activa":editing.estado})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}>
-            <option value="">— Sin asociar —</option>{facDirs.map(fd=><option key={fd.dir} value={fd.dir}>{cleanDir(fd.dir)}</option>)}</select></label>
+        <div className="t11" style={{marginTop:8}}><span className="semib" style={{color:C.grey}}>Facturación asociada (puedes marcar varias)</span>
+          <div style={{border:`1px solid ${C.line}`,borderRadius:6,padding:6,marginTop:2,maxHeight:120,overflowY:"auto"}}>
+            {facDirs.length===0&&<span className="t10" style={{color:C.grey}}>No hay direcciones facturadas aún.</span>}
+            {facDirs.map(fd=>{ const cur=Array.isArray(editing.links)?editing.links:(editing.link?[editing.link]:[]); const on=cur.includes(fd.dir);
+              return (<label key={fd.dir} className="row gap1 t11" style={{padding:"1px 0",cursor:"pointer"}}>
+                <input type="checkbox" checked={on} onChange={e=>{ const s=new Set(cur); if(e.target.checked)s.add(fd.dir); else s.delete(fd.dir); const arr=[...s]; setEditing({...editing,links:arr,estado:arr.length?"Activa":(editing.estado==="Activa"?"Vacante":editing.estado)}); }}/>
+                <span>{cleanDir(fd.dir)}</span></label>); })}
+          </div></div>
         <label className="t11" style={{display:"block",marginTop:8}}><span className="semib" style={{color:C.grey}}>Nota</span>
           <input value={editing.nota||""} onChange={e=>setEditing({...editing,nota:e.target.value})} style={{width:"100%",padding:"7px 10px",borderRadius:6,border:`1px solid ${C.line}`,fontSize:13,marginTop:2}}/></label>
         <div className="row gap2" style={{marginTop:14}}>
