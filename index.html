@@ -112,37 +112,30 @@ function enrich(rows){
   return base;
 }
 
-/* ===== Almacenamiento por capas: window.storage (compartido) -> localStorage -> memoria ===== */
-const Store={
-  mem:{}, mode:"memoria",
-  async init(){ if(window.storage&&window.storage.set){this.mode="nube (artifact)";} else { try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); this.mode="navegador"; }catch(e){ this.mode="memoria"; } } },
-  async get(k){
-    if(window.storage&&window.storage.get){ try{ const r=await window.storage.get(k,true); return r?r.value:null; }catch(e){ return null; } }
-    if(this.mode==="navegador"){ try{ return localStorage.getItem(k); }catch(e){} }
-    return this.mem[k]??null;
-  },
-  async set(k,v){
-    if(window.storage&&window.storage.set){ try{ await window.storage.set(k,v,true); return true; }catch(e){} }
-    if(this.mode==="navegador"){ try{ localStorage.setItem(k,v); return true; }catch(e){} }
-    this.mem[k]=v; return true;
-  }
-};
-const packRows=rows=>{ const dict=[...new Set(rows.map(r=>r.s))]; const di=new Map(dict.map((s,i)=>[s,i]));
-  return JSON.stringify({dict,rows:rows.map(r=>[r.id,di.get(r.s),r.n,r.b,r.f,r.c])}); };
-const unpackRows=str=>{ try{ const {dict,rows}=JSON.parse(str); return rows.map(p=>({id:p[0],s:dict[p[1]],n:p[2],b:p[3],f:p[4],c:p[5]})); }catch(e){ return []; } };
-
-/* Semilla: si una versión publicada trae datos/código embebidos y aún no hay nada guardado, los carga una vez */
-async function seedIfEmpty(){
+/* ===== Persistencia: backend compartido (/api/data en Cloudflare) con respaldo local ===== */
+let REMOTE=false;
+const packObj=rows=>{ const dict=[...new Set(rows.map(r=>r.s))]; const di=new Map(dict.map((s,i)=>[s,i]));
+  return {dict,rows:rows.map(r=>[r.id,di.get(r.s),r.n,r.b,r.f,r.c])}; };
+const unpack=o=>{ try{ const {dict,rows}=o; return rows.map(p=>({id:p[0],s:dict[p[1]],n:p[2],b:p[3],f:p[4],c:p[5]})); }catch(e){ return []; } };
+async function loadState(){
   try{
-    if(!(window.__SEED__)) return;
-    const cur=await Store.get("bd_rows");
-    if(!cur && window.__SEED__.packed){ await Store.set("bd_rows", JSON.stringify(window.__SEED__.packed)); }
-    const g=await Store.get("bd_gate");
-    if(!g && window.__SEED__.gate){ await Store.set("bd_gate", window.__SEED__.gate); }
-    const s=await Store.get("bd_settings");
-    if(!s && window.__SEED__.cap){ await Store.set("bd_settings", JSON.stringify({cap:window.__SEED__.cap})); }
+    const res=await fetch("/api/data",{cache:"no-store"});
+    if(res.ok){ REMOTE=true; const t=await res.text();
+      if(t){ const o=JSON.parse(t); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45}; }
+      return {rows:[],cap:45};
+    }
   }catch(e){}
+  REMOTE=false;
+  try{ const r=localStorage.getItem("bd_state"); if(r){ const o=JSON.parse(r); return {rows:o.rows?unpack(o.rows):[], cap:o.cap||45}; } }catch(e){}
+  return {rows:[],cap:45};
 }
+async function saveState(rows,cap){
+  const body=JSON.stringify({rows:packObj(rows),cap});
+  try{ localStorage.setItem("bd_state",body); }catch(e){}   // copia local SIEMPRE
+  if(REMOTE){ try{ const r=await fetch("/api/data",{method:"POST",headers:{"content-type":"application/json"},body}); return r.ok; }catch(e){ return false; } }
+  return true;
+}
+const modeLabel=()=> REMOTE ? "nube compartida" : "solo este navegador";
 
 /* ===== Dedup ===== */
 const bizKey=r=>`${(r.s||"").trim()}||${r.f||""}||${(r.c||"").trim()}`;
@@ -544,22 +537,27 @@ function Panel(){
   const [cap,setCapState]=useState(45);
   const [tab,setTab]=useState("resumen");
   const [toast,setToast]=useState(null);
+  const [mode,setMode]=useState("cargando…");
+  const [ready,setReady]=useState(false);
+  const rawRef=useRef([]), capRef=useRef(45);
   const rows=useMemo(()=>enrich(raw),[raw]);
-  const notify=(m,t="ok")=>{ setToast({t,m}); setTimeout(()=>setToast(null),3500); };
-  const setRows=useCallback(async next=>{ setRawState(next); await Store.set("bd_rows",packRows(next)); },[]);
-  const setCap=useCallback(async v=>{ setCapState(v); await Store.set("bd_settings",JSON.stringify({cap:v})); },[]);
-  useEffect(()=>{ (async()=>{ const r=await Store.get("bd_rows"); if(r) setRawState(unpackRows(r));
-    const s=await Store.get("bd_settings"); if(s){ try{ const o=JSON.parse(s); if(o.cap)setCapState(o.cap);}catch(e){} } })(); },[]);
+  const notify=(m,t="ok")=>{ setToast({t,m}); setTimeout(()=>setToast(null),4000); };
+  const setRows=useCallback(async next=>{ setRawState(next); rawRef.current=next; const ok=await saveState(next,capRef.current); if(!ok) notify("No se pudo guardar en la nube. Revisa la conexión.","err"); },[]);
+  const setCap=useCallback(async v=>{ setCapState(v); capRef.current=v; await saveState(rawRef.current,v); },[]);
+  const refresh=useCallback(async()=>{ const st=await loadState(); setRawState(st.rows); setCapState(st.cap); rawRef.current=st.rows; capRef.current=st.cap; setMode(modeLabel()); notify("Datos actualizados."); },[]);
+  useEffect(()=>{ (async()=>{ const st=await loadState(); setRawState(st.rows); setCapState(st.cap); rawRef.current=st.rows; capRef.current=st.cap; setMode(modeLabel()); setReady(true); })(); },[]);
   const empty=rows.length===0;
   const TABS=[["resumen","Resumen general",IDash],["ocup","Ocupación Huechuraba",IWare],["resto","El resto",ILayers],["import","Importación",IDb]];
+  if(!ready) return <div style={{padding:40,textAlign:"center",color:C.grey}}>Cargando…</div>;
   return (
    <div>
     <div style={{background:C.navy,padding:"14px 20px 0"}}>
       <div className="row wrap" style={{justifyContent:"space-between"}}>
         <div>
           <div className="bold" style={{color:"#fff",fontSize:16}}>Estado de Facturación · Panel</div>
-          <div className="t11" style={{color:"#B8C4DC"}}>{empty?"Sin datos cargados":`${numCL(rows.length)} documentos · ${new Set(rows.map(r=>r.c)).size} clientes`} · {Store.mode}</div>
+          <div className="t11" style={{color:"#B8C4DC"}}>{empty?"Sin datos cargados":`${numCL(rows.length)} documentos · ${new Set(rows.map(r=>r.c)).size} clientes`} · {mode}</div>
         </div>
+        <button className="btn t11" onClick={refresh} style={{background:"rgba(255,255,255,.12)",color:"#fff",padding:"6px 10px",alignSelf:"center"}}><IRefresh size={13}/> Actualizar</button>
       </div>
       <div className="row gap1" style={{marginTop:12,overflowX:"auto"}}>
         {TABS.map(([id,label,I])=>{ const on=tab===id; return (
@@ -579,39 +577,9 @@ function Panel(){
         : tab==="resumen"?<ResumenTab rows={rows}/>
         : tab==="ocup"?<OcupTab rows={rows} cap={cap} setCap={setCap}/>
         : tab==="resto"?<RestoTab rows={rows}/>
-        : <ImportTab raw={raw} enriched={rows} setRows={setRows} notify={notify} mode={Store.mode}/>}
+        : <ImportTab raw={raw} enriched={rows} setRows={setRows} notify={notify} mode={mode}/>}
     </div>
     <div className="t10" style={{padding:"0 20px 20px",color:C.grey}}>Comuna · dirección · tipo se derivan de la glosa. Gastos comunes → Huechuraba. Servicios (bomba/luz/riles) heredan la comuna del arriendo del cliente. Corderos y terneros → Santo Domingo.</div>
-   </div>);
-}
-
-/* ===================== Puerta de acceso (código) ===================== */
-function Gate(){
-  const [phase,setPhase]=useState("load"); // load | setup | enter | open
-  const [code,setCode]=useState(""),[code2,setCode2]=useState(""),[err,setErr]=useState("");
-  useEffect(()=>{ (async()=>{ await Store.init(); await seedIfEmpty(); const g=await Store.get("bd_gate"); setPhase(g?"enter":"setup"); })(); },[]);
-  const enc=s=>{ try{return btoa(unescape(encodeURIComponent(s)));}catch(e){return s;} };
-  const doSetup=async()=>{ if(code.length<4){setErr("Usa al menos 4 caracteres.");return;} if(code!==code2){setErr("Los códigos no coinciden.");return;}
-    await Store.set("bd_gate",enc(code)); setPhase("open"); };
-  const doEnter=async()=>{ const g=await Store.get("bd_gate"); if(g===enc(code)){setPhase("open");} else setErr("Código incorrecto."); };
-  if(phase==="open") return <Panel/>;
-  if(phase==="load") return <div style={{padding:40,textAlign:"center",color:C.grey}}>Cargando…</div>;
-  const setup=phase==="setup";
-  return (
-   <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.navy,padding:20}}>
-    <div className="card" style={{maxWidth:360,width:"100%"}}>
-      <div style={{display:"inline-flex",width:44,height:44,borderRadius:22,background:C.lgrey,alignItems:"center",justifyContent:"center",marginBottom:10}}><ILock color={C.orange} size={20}/></div>
-      <div className="bold" style={{fontSize:16,color:C.ink}}>{setup?"Crea el código de acceso":"Panel de Facturación"}</div>
-      <div className="t12" style={{color:C.grey,margin:"4px 0 14px"}}>{setup?"Define un código para proteger el panel. Lo pedirá cada vez que se entre.":"Ingresa el código para acceder."}</div>
-      <input type="password" value={code} placeholder="Código" onChange={e=>{setCode(e.target.value);setErr("");}}
-        onKeyDown={e=>{if(e.key==="Enter"&&!setup)doEnter();}}
-        style={{width:"100%",padding:"9px 12px",borderRadius:8,border:`1px solid ${C.line}`,fontSize:14,marginBottom:8}}/>
-      {setup&&<input type="password" value={code2} placeholder="Repite el código" onChange={e=>{setCode2(e.target.value);setErr("");}}
-        style={{width:"100%",padding:"9px 12px",borderRadius:8,border:`1px solid ${C.line}`,fontSize:14,marginBottom:8}}/>}
-      {err&&<div className="t12" style={{color:C.red,marginBottom:8}}>{err}</div>}
-      <button className="btn" onClick={setup?doSetup:doEnter} style={{background:C.orange,color:"#fff",padding:"10px 16px",fontSize:14,width:"100%",justifyContent:"center"}}>{setup?"Crear y entrar":"Entrar"}</button>
-      <div className="t10" style={{color:C.grey,marginTop:12}}>Nota: es un control de acceso básico del lado del cliente, no un sistema de seguridad. No lo uses para datos altamente sensibles.</div>
-    </div>
    </div>);
 }
 
